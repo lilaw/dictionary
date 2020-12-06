@@ -1,0 +1,29 @@
+.nav__container {
+  
+  max-width: 30%;
+  // background: hsla(45, 90%, 90%, 4);
+
+  color: $color-font-light-2;
+  font-size: 1.8rem;
+}
+.nav {
+  &__list {
+    list-style: none;
+    display: flex;
+  }
+  &__item {
+    &:nth-of-type(2n-1) {
+      margin-right: 3rem;
+    }
+  }
+  &__link {
+    text-decoration: none;
+    color: currentColor;
+  }
+  &__icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-right: .5rem;
+    fill: currentColor;
+  }
+}
