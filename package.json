@@ -4,17 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch:sass": "node-sass src/sass/main.scss src/css/style.css -w",
-    "devserver": "live-server  --open=src/",
-    "start": "npm-run-all --parallel devserver watch:sass",
+    "watch:sass": "node-sass html/sass/main.scss html/css/style.css -w",
+    "css-server": "live-server  --open=/html",
+    "css-start": "npm-run-all --parallel css-server watch:sass",
     "compile:sass": "node-sass src/sass/main.scss src/css/style.comp.css",
     "prefix:css": "postcss --use autoprefixer -b 'last 10 versions' src/css/style.comp.css -o src/css/style.prefix.css",
     "compress:css": "node-sass src/css/style.prefix.css src/css/style.css --output-style compressed",
-    "build:css": "npm-run-all compile:sass prefix:css compress:css"
+    "build:css": "npm-run-all compile:sass prefix:css compress:css",
+    "elm-server": "cd elm && elm-live src/Main.elm --start-page='../public/index.html' --pushstate -d '../public' -- --output='../public/js/elm.js' "
   },
-  "author": "Jonas",
-  "license": "ISC",
-  "devDependencies": {},
+  "devDependencies": {
+    "elm-live": "^4.0.2"
+  },
   "dependencies": {
     "autoprefixer": "^9.7.6",
     "concat": "^1.0.3",

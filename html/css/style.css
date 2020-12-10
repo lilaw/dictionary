@@ -127,11 +127,13 @@ body {
     padding: 0 3.8rem 0 1.8rem;
     border-radius: calc(var(--height) / 2);
     font-size: 1.6rem;
-    border: none;
+    border: .2rem solid transparent;
     background: #f9f7f6; }
     .search__input:focus {
       outline: none;
       box-shadow: 0 0.2rem 0.4rem 0.4rem rgba(255, 255, 255, 0.2); }
+    .search__input-error {
+      border-bottom: 0.2rem solid #ff7033; }
   .search__btn {
     color: currentColor;
     background-color: transparent;

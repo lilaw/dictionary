@@ -1,0 +1,47 @@
+@mixin roundBorder {
+  border-radius: calc(var(--height) / 2);
+  
+}
+
+.search {
+  --height: 3.3rem;
+  max-width: 40%;
+  width: 50rem;
+  height: var(--height);
+  display: flex;
+  justify-content: center;
+  color: $color-secondary;
+  &__input {
+    width: 88%;
+    padding: 0 3.8rem 0 1.8rem;
+    @include roundBorder;
+    font-size: 1.6rem;
+    border: .2rem solid transparent;
+
+    background: $color-grey-light-1;
+    &:focus {
+      outline: none;
+      box-shadow: 0 .2rem .4rem 0.4rem hsla(0, 100%, 100%, 0.2);
+      
+    }
+    &-error {
+      border-bottom: .2rem solid hsl(18, 100%, 60%);
+    }
+  }
+  
+
+  &__btn {
+    color: currentColor;
+    background-color: transparent;
+    transform: translateX(-3.5rem);
+    padding: 0;
+    border-width: 0;
+    cursor: pointer;
+  }
+
+  &__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    fill: currentColor;
+  }
+}
