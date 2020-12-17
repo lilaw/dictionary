@@ -1,4 +1,4 @@
-port module Session exposing (Session, decode, navKey)
+port module Session exposing (Session, decode, navKey, changes, storeSession)
 
 import Browser.Navigation as Nav
 import Viewer exposing (Viewer, defaultViewer)

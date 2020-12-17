@@ -8,11 +8,12 @@ $color-grey-light-1: #f9f7f6;
 $color-grey-light-2: #aaa;
 
 $color-grey-dark-1: #54483A;
-$color-grey-dark-2: #6D5D4B;
-$color-grey-dark-3: rgb(17, 13, 9);
+$color-grey-dark-2: rgb(66, 52, 37);
+$color-grey-dark-3: rgb(22, 19, 12);
 
-$color-font-light-1: #ffff;
-$color-font-light-2: #dddd;
+$color-font-light-1: #eeee;
+$color-font-light-2: #bbb;
+$color-font-light-3: rgb(90, 83, 83);
 
 // FONT VARIABLES
 $font-primary: 'Nunito', sans-serif;
@@ -45,8 +46,8 @@ html {
 
 body {
     font-family: $font-primary;
-    color: $color-grey-dark-2;
-    background-color: $color-grey-dark-3;
+    color: $color-font-light-1;
+    background-color: $color-grey-dark-2;
     font-weight: 300;
     line-height: 1.6;
 }
@@ -54,10 +55,16 @@ body {
 .container {
     display: grid;
     // we use min-content to have the height of it's content
-    grid-template-rows: 10rem auto 40vw repeat(3, min-content);
+    grid-template-rows: 9rem auto 40vw repeat(3, min-content);
     // adding two column to each side of eight columns center eight columns between sidebar and right viewport border
     // full-bleed section goes all the way from the left side to the right side, like header gallery. these sections need these 1fr columns on the left and right side to break out of ur predefined eight-column grid 
     grid-template-columns: [leftspace-start] 4rem [leftspace-end full-start] minmax(6rem, 1fr) [center-start] repeat(8, [col-start] minmax(min-content, 14rem) [col-end] ) [center-end] minmax(6rem, 1fr) [full-end rightspace-start] 4rem [rightspace-end]; //1140px/8=142.5
     
+}
 
+.content {
+    display: grid;
+    margin-top: 2rem;
+    grid-column: full-start / full-end;
+    grid-template-columns: repeat(10, 1fr);
 }

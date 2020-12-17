@@ -1,0 +1,76 @@
+.vocabulary {
+  grid-column: 3 / -1;
+  display: grid;
+  padding: 1.5rem;
+  background-color: $color-grey-dark-3;
+  background-clip: content-box;
+  
+  &__container {
+    padding: 1.5rem;
+  }
+
+  &__definition {
+    padding-left: 1em;
+    font-size: 1.7rem;
+    counter-increment: definition;
+    &:first-of-type {
+      counter-set: definition 1;
+      counter-set: sense a;
+    }
+    &:nth-of-type(2n) {
+      margin: 1em 0;
+    }
+      &::before {
+        content: counter(definition);
+      }
+  }
+  &__grammatical {
+    font-size: 1.8rem;
+    &::before {
+      content: "\0020" "[";
+    }
+    &::after {
+      content: "]";
+    }
+  }
+  
+  &__senses {
+    counter-increment: sense;
+    margin-left: 1em;
+    &-text {
+      &::before {
+        content: counter(sense, lower-alpha) "\0020" ":" "\0020";
+        
+      }
+      
+    }
+  }
+  
+  &__list-example {
+    margin-left: 3em;
+    
+  }
+  &__example {
+
+  }
+
+  &__usage {
+    &-text {
+
+      &::before {
+        content: "\2014" "\0020" "\0020";
+      }
+    }
+  }
+  
+  &__label {
+    color: $color-font-light-2;
+    &::before {
+      content: "\0020" "[" "\0020";
+    }
+    &::after {
+      content: "\0020" "]" "\0020";
+    }
+    
+  }
+}

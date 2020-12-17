@@ -14,15 +14,21 @@ html {
 
 body {
   font-family: "Nunito", sans-serif;
-  color: #6D5D4B;
-  background-color: #110d09;
+  color: #eeee;
+  background-color: #423425;
   font-weight: 300;
   line-height: 1.6; }
 
 .container {
   display: grid;
-  grid-template-rows: 10rem auto 40vw repeat(3, min-content);
+  grid-template-rows: 9rem auto 40vw repeat(3, min-content);
   grid-template-columns: [leftspace-start] 4rem [leftspace-end full-start] minmax(6rem, 1fr) [center-start] repeat(8, [col-start] minmax(min-content, 14rem) [col-end]) [center-end] minmax(6rem, 1fr) [full-end rightspace-start] 4rem [rightspace-end]; }
+
+.content {
+  display: grid;
+  margin-top: 2rem;
+  grid-column: full-start / full-end;
+  grid-template-columns: repeat(10, 1fr); }
 
 .heading-1, .heading-2, .heading-3, .heading-4 {
   font-family: "Josefin Sans", sans-serif;
@@ -43,12 +49,12 @@ body {
     color: #54483A; }
 
 .heading-3 {
-  font-size: 1.6rem;
+  font-size: 1.9rem;
   color: #c69963;
   text-transform: uppercase; }
 
 .heading-4 {
-  font-size: 1.9rem; }
+  font-size: 1.6rem; }
   .heading-4--light {
     color: #f9f7f6; }
   .heading-4--dark {
@@ -80,6 +86,29 @@ body {
 .mb-hg {
   margin-bottom: 8rem; }
 
+.side-bar {
+  grid-column: 1 / 3;
+  padding: 1.5rem;
+  display: grid;
+  grid-gap: 3rem; }
+
+.entries {
+  background-color: #16130c;
+  border-radius: .4rem;
+  padding: 1.5rem; }
+  .entries__list {
+    list-style: none; }
+  .entries__item {
+    display: block; }
+  .entries__link {
+    display: block;
+    text-decoration: none;
+    font-size: 1.4rem;
+    padding: .4em .7em;
+    color: #eeee; }
+    .entries__link:hover {
+      background-color: #423425; }
+
 .header {
   display: flex;
   align-items: center;
@@ -94,19 +123,19 @@ body {
 
 .nav__container {
   max-width: 30%;
-  color: #dddd;
-  font-size: 1.8rem; }
+  color: #eeee; }
 
 .nav__list {
   list-style: none;
   display: flex; }
 
 .nav__item:nth-of-type(2n-1) {
-  margin-right: 3rem; }
+  margin-right: 2.5em; }
 
 .nav__link {
   text-decoration: none;
-  color: currentColor; }
+  color: currentColor;
+  font-size: 1.8rem; }
 
 .nav__icon {
   width: 1.75rem;
@@ -145,3 +174,44 @@ body {
     width: 2.5rem;
     height: 2.5rem;
     fill: currentColor; }
+
+.vocabulary {
+  grid-column: 3 / -1;
+  display: grid;
+  padding: 1.5rem;
+  background-color: #16130c;
+  background-clip: content-box; }
+  .vocabulary__container {
+    padding: 1.5rem; }
+  .vocabulary__definition {
+    padding-left: 1em;
+    font-size: 1.7rem;
+    counter-increment: definition; }
+    .vocabulary__definition:first-of-type {
+      counter-set: definition 1;
+      counter-set: sense a; }
+    .vocabulary__definition:nth-of-type(2n) {
+      margin: 1em 0; }
+    .vocabulary__definition::before {
+      content: counter(definition); }
+  .vocabulary__grammatical {
+    font-size: 1.8rem; }
+    .vocabulary__grammatical::before {
+      content: "\0020" "["; }
+    .vocabulary__grammatical::after {
+      content: "]"; }
+  .vocabulary__senses {
+    counter-increment: sense;
+    margin-left: 1em; }
+    .vocabulary__senses-text::before {
+      content: counter(sense, lower-alpha) " " ":" " "; }
+  .vocabulary__list-example {
+    margin-left: 3em; }
+  .vocabulary__usage-text::before {
+    content: "\2014" "\0020" "\0020"; }
+  .vocabulary__label {
+    color: #bbb; }
+    .vocabulary__label::before {
+      content: "\0020" "[" "\0020"; }
+    .vocabulary__label::after {
+      content: "\0020" "]" "\0020"; }

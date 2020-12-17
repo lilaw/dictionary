@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, pushUrl)
+module Route exposing (Route(..), fromUrl, pushUrl, href)
 
 import Browser.Navigation as Nav
 import Html exposing (Attribute)
@@ -39,9 +39,9 @@ pushUrl key route =
 
 
 
--- href : Route -> Attribute msg
--- href route =
---     Attr.href (routeToString route)
+href : Route -> Attribute msg
+href route =
+    Attr.href (routeToString route)
 
 
 -- -- INTERNAL

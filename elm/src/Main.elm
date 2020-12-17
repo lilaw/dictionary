@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Html exposing (div)
 import Html.Attributes exposing (class)
@@ -14,6 +14,8 @@ import Page as ViewPage
 import Page.Vocabulary as Vocabulary
 import Header.SearchBox as SearchBox
 
+port sendMessage : String -> Cmd msg
+port messageReceiver : (String -> msg) -> Sub msg
 
 
 
@@ -95,6 +97,9 @@ update msg model =
                  }    
                 , Cmd.map GotSearchBoxMsg newMsg
                 )
+        (GotVocabularyMsg subMsg, Vocabulary vocabulary) ->
+            Vocabulary.update subMsg vocabulary
+                |> updateWithPage Vocabulary GotVocabularyMsg model
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model.page
         ( _, _) ->
@@ -155,8 +160,8 @@ subscriptions model =
     case model.page of
         Redirect _ ->
             Sub.none
-        Vocabulary _ ->
-            Sub.none
+        Vocabulary voc ->
+            Sub.map GotVocabularyMsg (Vocabulary.subscriptions voc)
 
        
 
