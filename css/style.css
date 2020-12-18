@@ -95,17 +95,31 @@ body {
 .entries {
   background-color: #16130c;
   border-radius: .4rem;
-  padding: 1.5rem; }
+  padding: 1.5rem;
+  font-size: 1.4rem;
+  color: #eeee; }
   .entries__list {
     list-style: none; }
   .entries__item {
     display: block; }
-  .entries__link {
-    display: block;
-    text-decoration: none;
-    font-size: 1.4rem;
+  .entries__btn {
+    background-color: transparent;
+    color: currentColor;
+    border: none;
     padding: .4em .7em;
-    color: #eeee; }
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: left; }
+    .entries__btn:hover {
+      background-color: #423425; }
+    .entries__btn--selected {
+      background-color: #423425; }
+  .entries__link {
+    padding: .4em .7em;
+    color: currentColor;
+    display: block;
+    text-decoration: none; }
     .entries__link:hover {
       background-color: #423425; }
 
@@ -209,7 +223,11 @@ body {
     margin-left: 3em; }
   .vocabulary__usage-text::before {
     content: "\2014" "\0020" "\0020"; }
-  .vocabulary__label::before {
-    content: "\0020" "[" "\0020"; }
-  .vocabulary__label::after {
-    content: "\0020" "]" "\0020"; }
+  .vocabulary__label {
+    color: #bbb; }
+    .vocabulary__label::before {
+      content: "\0020" "[" "\0020"; }
+    .vocabulary__label::after {
+      content: "\0020" "]" "\0020"; }
+  .vocabulary__seealso::before {
+    content: "\2014" "\0020" "\0020"; }
