@@ -14,6 +14,8 @@
   background-color: $color-grey-dark-3;
   border-radius: .4rem;
   padding: 1.5rem;
+  font-size: 1.4rem;
+  color: $color-font-light-1;
   &__title {
 
   }
@@ -23,12 +25,27 @@
   &__item {
     display: block;
   }
+  &__btn {
+    background-color: transparent;
+    color: currentColor;
+    border: none;
+    padding: .4em .7em;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: left;
+    &:hover {
+      background-color: $color-grey-dark-2;
+    }
+    &--selected {
+      background-color: $color-grey-dark-2;
+    }
+  }
   &__link {
+    padding: .4em .7em;
+    color: currentColor;
     display: block;
     text-decoration: none;
-    font-size: 1.4rem;
-    padding: .4em .7em;
-    color: $color-font-light-1;
     &:hover {
       background-color: $color-grey-dark-2;
     }

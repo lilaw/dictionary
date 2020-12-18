@@ -2,9 +2,8 @@ module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relate
 
 import Json.Decode as Decode exposing (Decoder, Value, list, string, at, field, index, oneOf, value, maybe, map2)
 import Json.Decode.Pipeline exposing (custom, hardcoded, required, optional)
-import Regex
 import Http
-import Api exposing (url)
+import Api exposing (url, userReplace)
 
 
 
@@ -21,8 +20,8 @@ type alias Word =
     { id : String
     , headword : String
     , define : Maybe (List (List Sense))
+    , functionalLabel : Maybe String  -- noun, verb
     -- , IPA : {}
-    -- , functionalLabel : String  -- noun, verb
     -- , shortDefine : List String
     }
 
@@ -40,6 +39,7 @@ type Explan
         }
     | SupplementalNote String--snote
     | GrammaticalLabel String --wsgram
+
     | Other
 
   
@@ -79,6 +79,7 @@ wordDecode slug =
     |> custom (at [ "meta", "id" ] string) -- id 
     |> custom (at [ "meta", "id" ] string) -- for headword, headword is an id without suffix
     |> custom (maybe (field "def" (index 0 (field "sseq" (list (list senseDecoder))))) )
+    |> custom (maybe (field "fl" string)) -- functional label
     |> Decode.map removeSuffix
 
 
@@ -105,7 +106,7 @@ senseDecoder =
                 maybe (index 1 (field "sgram" string)) |> Decode.map (Maybe.withDefault "")
             ) 
         |> custom ( 
-                maybe (index 1 (field "dt" (list explanDecoder)))
+                maybe (index 1 (oneOf [field "dt" (list explanDecoder), at ["sense", "dt"] (list explanDecoder)]))
             )
 
 explanDecoder : Decoder Explan
@@ -138,13 +139,5 @@ explanHelper idea =
         _ -> 
             -- Decode.fail ("I can't decode" ++ idea)
             Decode.succeed Other
-
-tokenParser : String -> String
-tokenParser sentence =
-    let
-        remover = userReplace "\\{bc\\}" (\_ -> "")
-        replacer = userReplace 
-    in
-    
 
 

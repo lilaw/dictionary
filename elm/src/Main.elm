@@ -78,7 +78,7 @@ type Msg
     | GotSearchBoxMsg SearchBox.Msg
     | Ignored
     | ChangedUrl Url
-    | LinkClicked Browser.UrlRequest
+    | ClickedLink Browser.UrlRequest
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -102,6 +102,29 @@ update msg model =
                 |> updateWithPage Vocabulary GotVocabularyMsg model
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model.page
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    let
+                        a = Debug.log "url" url
+                    in
+                    
+                    case url.fragment of
+                        Nothing ->
+                            ( model
+                            , Nav.pushUrl (Session.navKey (toSession model.page)) (Url.toString url)
+                            )
+
+                        Just _ ->
+                            -- If we got a link that didn't include a fragment,
+                            -- it's from one of those (href "") attributes that
+                            -- we have to include to make the RealWorld CSS work.
+                            ( model, Cmd.none )
+
+                Browser.External href ->
+                    ( model
+                    , Nav.load href
+                    )
         ( _, _) ->
             ( model, Cmd.none)
 
@@ -173,6 +196,6 @@ main = Browser.application
     , view = view
     , update = update
     , subscriptions = subscriptions
-    , onUrlRequest = LinkClicked
+    , onUrlRequest = ClickedLink
     , onUrlChange = ChangedUrl
     }

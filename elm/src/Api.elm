@@ -1,9 +1,10 @@
-module Api exposing (url, decodeErrors, addServerError)
+module Api exposing (url, decodeErrors, addServerError, userReplace)
 
 import Http exposing (Error(..))
 -- import Json.Decode as Decode exposing (Decoder, decodeString, field, string, list)
 -- import Json.Decode.Pipeline as Pipeline exposing (optional)
 import Url.Builder exposing (string)
+import Regex
 
 
 
@@ -46,20 +47,12 @@ decodeErrors error =
     in
     [message]
    
+-- replace
+userReplace : String -> (Regex.Match -> String) -> String -> String
+userReplace userRegex replacer string =
+  case Regex.fromString userRegex of
+    Nothing ->
+      string
 
--- errorDecoder : Decoder (List String)
--- errorDecoder =
--- 		Decode.string
--- 				|> Decode.map (\s -> [s])
-
--- errorsDecoder : Decoder (List String)
--- errorsDecoder =
--- 		Decode.keyValuePairs (list string)
--- 				|> Decode.map (List.concatMap fromPair)
-
--- fromPair : (String, List String) -> List String
--- fromPair (field, errors) =
--- 		List.map (\error -> field ++ " " ++ error) errors
--- fromPair : ( String, List String ) -> List String
--- fromPair ( field, errors ) =
---     List.map (\error -> field ++ " " ++ error) errors
+    Just regex ->
+      Regex.replace regex replacer string
