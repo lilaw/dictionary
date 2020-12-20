@@ -6,6 +6,7 @@ import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, int, map, oneOf, s, string, top)
 import Browser.Navigation as Nav
+import Vocabulary.Slug as Slug exposing (Slug)
 
 
 
@@ -14,14 +15,14 @@ import Browser.Navigation as Nav
 
 type Route
     = Home
-    | Vocabulary String
+    | Vocabulary Slug
 
 
 parser : Parser (Route -> a) a
 parser =
     oneOf
         [ map Home top
-        , map Vocabulary (s "vocabulary" </> string)
+        , map Vocabulary (s "vocabulary" </> Slug.urlParser)
         ]
 
 
@@ -53,8 +54,8 @@ routeToString route =
                 Home ->
                     []
             
-                Vocabulary string ->
-                    ["vocabulary", string]
+                Vocabulary slug ->
+                    ["vocabulary", Slug.toString slug]
             
     in
         "/" ++ String.join "/" pieces

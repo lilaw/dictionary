@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Html exposing (div)
 import Html.Attributes exposing (class)
@@ -10,13 +10,9 @@ import Html exposing (..)
 import Route exposing (Route)
 import Session exposing (Session)
 import Page as ViewPage
-
+import Vocabulary.Slug as Slug
 import Page.Vocabulary as Vocabulary
 import Header.SearchBox as SearchBox
-
-port sendMessage : String -> Cmd msg
-port messageReceiver : (String -> msg) -> Sub msg
-
 
 
 -- model 
@@ -145,8 +141,8 @@ changeRouteTo maybeRoute page =
         Nothing ->
             (model, Cmd.none)
 
-        Just (Route.Vocabulary word) ->
-            Vocabulary.init session word
+        Just (Route.Vocabulary slug) ->
+            Vocabulary.init session slug
                 |> updateWithPage Vocabulary GotVocabularyMsg model
         Just Route.Home -> 
             (model, Cmd.none)

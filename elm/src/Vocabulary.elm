@@ -1,9 +1,12 @@
-module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, id, entries, headword)
+module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, id, entries, headword, favorite, unfavorite)
 
 import Json.Decode as Decode exposing (Decoder, Value, list, string, at, field, index, oneOf, value, maybe, map2)
 import Json.Decode.Pipeline exposing (custom, hardcoded, required, optional)
 import Http
 import Api exposing (url, userReplace)
+import Vocabulary.Slug as Slug exposing (Slug)
+import Favorites exposing (Favorites)
+import Viewer exposing (Viewer)
 
 
 
@@ -11,7 +14,7 @@ type Vocabulary
   = Vocabulary Internals
 
 type alias Internals =
-    { slug : String
+    { slug : Slug
     , entries : List Word  -- for this word 
     , related : List Word   -- for other word
     }
@@ -19,10 +22,13 @@ type alias Internals =
 type alias Word =
     { id : String
     , headword : String
+    , slug : Slug
     , define : Maybe (List (List Sense))
     , functionalLabel : Maybe String  -- noun, verb
-    -- , IPA : {}
-    -- , shortDefine : List String
+    , ipa : Maybe String
+    , audio : Maybe String
+    , shortDefine : List String
+    , crossReffences : Maybe String
     }
 
 type alias Sense =
@@ -40,7 +46,7 @@ type Explan
     | SupplementalNote String--snote
     | GrammaticalLabel String --wsgram
 
-    | Other
+    | Other -- ignore other
 
   
 -- Info
@@ -60,40 +66,58 @@ headword : Word -> String
 headword w = 
   w.headword
 
+
+
 -- decoder
 
 
-decoder : String -> Decoder Vocabulary
+decoder : Slug -> Decoder Vocabulary
 decoder slug = 
   Decode.succeed Internals
     |> hardcoded slug
-    |> custom (list (wordDecode slug))
-    |> custom (list (wordDecode slug))
+    |> custom (list wordDecode)
+    |> custom (list wordDecode)
     |> Decode.map filterOutRelate
     |> Decode.map Vocabulary
 
 
-wordDecode : string -> Decoder Word
-wordDecode slug = 
+wordDecode : Decoder Word
+wordDecode = 
   Decode.succeed Word
     |> custom (at [ "meta", "id" ] string) -- id 
-    |> custom (at [ "meta", "id" ] string) -- for headword, headword is an id without suffix
-    |> custom (maybe (field "def" (index 0 (field "sseq" (list (list senseDecoder))))) )
+    |> custom (at [ "meta", "id" ] stringWithoutSuffix) -- for headword, headword is an id without suffix
+    |> custom (at [ "meta", "id" ] (Slug.decoder stringWithoutSuffix))
+    |> custom (maybe 
+        (oneOf
+            [ field "def" (index 0 (field "sseq" (list (list senseDecoder))))
+            , field "dros" (index 0 (field "def" (index 0 (field "sseq" (list (list senseDecoder))))))
+            ]
+        ))
     |> custom (maybe (field "fl" string)) -- functional label
-    |> Decode.map removeSuffix
+    |> custom (maybe (at ["hwi", "prs"] (index 0 (field "ipa" string)))) -- ipa
+    |> custom (maybe (at ["hwi", "prs"] (index 0 (at ["sound", "audio"] string)))) --audio
+    |> required "shortdef" (list string)
+    |> custom (maybe (field "cxs" (index 0 crossReffencesDecoder)))
+    
 
 
 -- Internal
-removeSuffix : Word -> Word
-removeSuffix w = 
-   {w | headword = userReplace ":\\d+$" (\_ -> "") w.id}
+crossReffencesDecoder : Decoder String
+crossReffencesDecoder = 
+  Decode.succeed (\label hyperlinktext -> label ++ " {sx|" ++ hyperlinktext ++"||}")
+    |> required "cxl" string
+    |> custom (field "cxtis" (index 0 (field "cxt" string)))
 
+stringWithoutSuffix : Decoder String
+stringWithoutSuffix = 
+  Decode.map 
+    (userReplace ":\\d+$" (\_ -> "")) string
 
 filterOutRelate : Internals -> Internals
 filterOutRelate info  =
   {info 
-    | entries = List.filter (\w -> w.headword == info.slug) info.entries
-    , related =  List.filter (\w -> w.headword /= info.slug) info.related
+    | entries = List.filter (\w -> w.headword == (Slug.toString info.slug)) info.entries
+    , related = List.filter (\w -> w.headword /= (Slug.toString info.slug)) info.related
   }
 
 
@@ -106,7 +130,11 @@ senseDecoder =
                 maybe (index 1 (field "sgram" string)) |> Decode.map (Maybe.withDefault "")
             ) 
         |> custom ( 
-                maybe (index 1 (oneOf [field "dt" (list explanDecoder), at ["sense", "dt"] (list explanDecoder)]))
+                maybe (index 1 (oneOf 
+                    [ field "dt" (list explanDecoder)
+                    , at ["sense", "dt"] (list explanDecoder)
+                    ])
+                )
             )
 
 explanDecoder : Decoder Explan
@@ -141,3 +169,22 @@ explanHelper idea =
             Decode.succeed Other
 
 
+-- FAVORITE
+favorite : Viewer -> Slug -> String -> Cmd msg
+favorite viewer slug text =
+  let
+    oldFavor = Viewer.favorites viewer
+  in
+    Favorites.add slug text oldFavor
+      |> Viewer.updateFavor viewer
+      |> Viewer.store
+  
+
+unfavorite : Viewer -> String -> Cmd msg
+unfavorite viewer  text =
+  let
+    oldFavor = Viewer.favorites viewer
+  in
+    Favorites.remove text oldFavor
+      |> Viewer.updateFavor viewer
+      |> Viewer.store

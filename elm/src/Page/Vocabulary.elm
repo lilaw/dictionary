@@ -7,10 +7,16 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Parser
 import Html.Parser.Util
-import Api exposing (userReplace)
+import Svg exposing (svg, use)
+
+import Svg.Attributes as SvgAttributes
+import Api exposing (userReplace, audioUrl)
 import Session exposing (Session)
 import Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder)
 import Route exposing (Route)
+import Vocabulary.Slug as Slug exposing (Slug)
+import Viewer exposing (Viewer)
+import Favorites
 
 type alias Model =
     { session : Session
@@ -27,7 +33,7 @@ type Status a
 
 type Id = Id String
 
-init : Session -> String -> (Model, Cmd Msg)
+init : Session -> Slug -> (Model, Cmd Msg)
 init session slug =
   ({ session = session
    , errors = []
@@ -36,7 +42,6 @@ init session slug =
    }
   , Cmd.batch
     [ fetch slug
-    , Session.storeSession (Just "grppg")
     ]
   )
 
@@ -66,7 +71,7 @@ view model =
                         ]
                 ]
             , div [class "vocabulary"] <|
-                vocabularyView model.selectedEntry model.vocabulary
+                vocabularyView model.selectedEntry model.vocabulary (Session.viewer model.session)
             ]
     }
 
@@ -96,7 +101,7 @@ sideNav vocabulary selectedEntry =
                         headword = Vocabulary.headword word
                         
                     in
-                    relatedLink (Route.Vocabulary headword) (text headword)
+                    relatedLink (Route.Vocabulary word.slug) (text headword)
             in
                 ( div [class "entries entries-thisword mb-md"]
                     [ h3 [class "entries__title heading-3"] [text "entries"]
@@ -118,8 +123,8 @@ sideNav vocabulary selectedEntry =
             ( text "faild", text "")
 
 
-vocabularyView : Maybe Id -> Status Vocabulary -> List (Html msg)
-vocabularyView selectedEntry vocabulary =
+vocabularyView : Maybe Id -> Status Vocabulary -> Viewer -> List (Html Msg)
+vocabularyView selectedEntry vocabulary viewer=
         case vocabulary of
         Loaded voc ->
             let
@@ -134,11 +139,48 @@ vocabularyView selectedEntry vocabulary =
                 
                 wordView word = 
                     div [class "vocabulary__container"] <|
-                            h2 [class "vocabulary__headword heading-2 mb-sm"] [text (Vocabulary.headword word)] ::
-                            defineView word.define
+                            List.concat 
+                                [ [headerView word]
+                                , [shortDefineView word.shortDefine]
+                                , fullDefineView word.define
+                                , [crossReffencesView word.crossReffences]
+                                ]
                             
-
-                defineView define = 
+                            
+                headerView word = 
+                    header [class "vocabulary__header  mb-sm"]
+                        [ h2 [class "vocabulary__headword heading-1"] [text word.headword]
+                        , case word.functionalLabel of
+                            Just label ->
+                                span [class "vocabulary__functional-label"] [text label]
+                            Nothing ->
+                                text ""
+                        , div [class "vocabulary__pronunciation"]
+                            [ case word.ipa of
+                                Just ipa ->
+                                    span [class "vocabulary__ipa"] [text ipa]
+                                Nothing ->
+                                    text ""
+                            , case word.audio of
+                                Just filename ->
+                                    button [class "vocabulary__sound", onClick ClickedAudio] 
+                                        [ svg [ SvgAttributes.class "vocabulary__sound-icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-audio" ] []  ]
+                                        , audio [class "vocabulary__sound-audio", id "audio", src (audioUrl filename)] []
+                                        ]
+                                Nothing ->
+                                    text ""
+                            ]
+                        , favoriteButton viewer word.slug word.headword
+                        ]
+                
+                shortDefineView shortDefine =
+                    div [class "vocabulary__brief"]
+                        [ ul [class "vocabulary__brief-list"] <|
+                            List.map
+                                (\str -> li [class "vocabulary__brief-item"] [text str])
+                                shortDefine
+                        ]
+                fullDefineView define = 
                     case define of
                         Just listOfDefine ->
                             List.map (\listOfSenses -> 
@@ -148,6 +190,14 @@ vocabularyView selectedEntry vocabulary =
                     
                         Nothing ->
                             [text ""]
+                crossReffencesView crossRef =
+                    case crossRef of
+                        Just cr ->
+                            div [class "vocabulary__crossRef"] 
+                                [ p [] (textHtml cr) ]
+                        Nothing ->
+                            text ""
+                    
             in
                 List.map wordView words
                 
@@ -203,6 +253,20 @@ sentencesView sentences =
         List.map (\s -> li [class "vocabulary__example"] (textHtml s)) sentences
     
 
+favoriteButton : Viewer -> Slug -> String -> Html Msg
+favoriteButton viewer slug headword =
+    let
+        favorited 
+            = Favorites.isFavorited headword 
+                <| Viewer.favorites viewer
+    in
+        if favorited then
+            button [class "vocabulary__save", onClick (ClickedUnfavorite viewer headword)]
+                [ svg [ SvgAttributes.class "vocabulary__save-icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-star-full" ] [] ] ]
+        else 
+            button [class "vocabulary__save", onClick (ClickedFavorite viewer slug headword)]
+                [ svg [ SvgAttributes.class "vocabulary__save-icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-star" ] [] ] ]
+    
 
 textHtml : String -> List (Html.Html msg)
 textHtml sentence =
@@ -223,6 +287,9 @@ textHtml sentence =
 type Msg
     = CompetedVocabularyLoad (Result Http.Error Vocabulary)
     | ClickedEntry String
+    | ClickedAudio
+    | ClickedFavorite Viewer Slug String
+    | ClickedUnfavorite Viewer String
     | GotSession Session
 
 update : Msg -> Model ->  ( Model, Cmd Msg )
@@ -232,6 +299,12 @@ update msg model =
             ( {model | vocabulary = Loaded vocabulary, selectedEntry = (Maybe.map Id << List.head << List.map (\w -> w.id)) (Vocabulary.entries vocabulary)}, Cmd.none)
         ClickedEntry id ->
             ( {model | selectedEntry = Just (Id id)}, Cmd.none)
+        ClickedAudio ->
+            ( model, Api.soundCmdToJs "play" )
+        ClickedFavorite viewer slug headword ->
+            ( model, Vocabulary.favorite viewer slug headword)
+        ClickedUnfavorite viewer headword ->
+            ( model, Vocabulary.unfavorite viewer headword)
         CompetedVocabularyLoad (Err errors) ->
             let
                 e = Debug.log "error" errors
@@ -239,22 +312,21 @@ update msg model =
             
             ( {model | errors = Api.decodeErrors errors}, Cmd.none)
         GotSession session ->
-            ( model, Cmd.none)
+            ( {model | session = session}, Cmd.none)
 
 
 
 -- Http
 
-fetch : String -> Cmd Msg
+fetch : Slug -> Cmd Msg
 fetch slug =
   let
       expect = Http.expectJson CompetedVocabularyLoad (decoder slug)
   in
-  Api.url [slug]
+  Api.url [(Slug.toString slug)]
     |> HttpBuilder.get
     |> HttpBuilder.withExpect expect
     |> HttpBuilder.request
-
 
 
 
@@ -287,9 +359,6 @@ tokenParser sentence =
                 "{rdquo}" ->
                     "”"
                 _ ->
-                    -- let
-                    --     a = Debug.log "maych" match
-                    -- in
                     if String.contains "dxt" match.match then
                         (Maybe.withDefault "" << List.head) <|
                             List.map 
@@ -299,9 +368,8 @@ tokenParser sentence =
                     else if String.contains "{sx" match.match then
                         List.foldl (++) "" <| 
                             List.map 
-                                (Maybe.map (\s -> "<a style='font-weight: bold; color: #bbb' href='" ++ s ++ "'> : " ++ s ++"</a>") >> Maybe.withDefault "")
+                                (Maybe.map (\s -> "<a style='font-weight: bold; color: #bbb' href='" ++ s ++ "'>  " ++ s ++"</a>") >> Maybe.withDefault "")
                                 match.submatches
-                    
                     else
                         "+++++"
             

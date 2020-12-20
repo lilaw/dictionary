@@ -7,6 +7,7 @@ import Svg exposing (svg, use)
 import Svg.Attributes as SvgAttributes
 import Route
 import Session exposing (Session)
+import Vocabulary.Slug exposing (buildSlug)
 
 -- an searchbox in header
 
@@ -57,7 +58,7 @@ update msg model =
             case validate model.form of
                 Ok validForm ->
                   ( init model.session
-                    , Route.pushUrl (Session.navKey model.session) (Route.Vocabulary validForm.word)
+                    , Route.pushUrl (Session.navKey model.session) (Route.Vocabulary <| buildSlug validForm.word)
                   )  
             
                 Err problem ->
