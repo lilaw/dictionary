@@ -16,6 +16,7 @@ import Vocabulary.Slug as Slug exposing (Slug)
 type Route
     = Home
     | Vocabulary Slug
+    | Favorites
 
 
 parser : Parser (Route -> a) a
@@ -23,6 +24,7 @@ parser =
     oneOf
         [ map Home top
         , map Vocabulary (s "vocabulary" </> Slug.urlParser)
+        , map Favorites (s "favorites")
         ]
 
 
@@ -56,6 +58,8 @@ routeToString route =
             
                 Vocabulary slug ->
                     ["vocabulary", Slug.toString slug]
+                Favorites ->
+                    ["favorites"]
             
     in
         "/" ++ String.join "/" pieces

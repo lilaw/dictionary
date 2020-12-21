@@ -16,19 +16,14 @@ import Header.SearchBox as SearchBox
 type Page
     = Other
     | Home
+    | Favorites
 
 
 {-| Take a page's Html and frames it with a header and footer.
 
 
 -}
--- view : Html msg -> Page -> { title : String, content : Html msg }  -> {title: String, header : Html msg, content: Html msg, footer: Html msg}
--- view searchBoxContent page { title, content }  =
---     { title = title ++ " - Dictionary"
---     , header = 
---     , content = content
---     , footer = viewFooter
---     }
+
 viewHeaderFooter : Page -> Html msg -> {header: Html msg, footer : Html msg}
 viewHeaderFooter page searchBoxConfig =
     { header = viewHeader searchBoxConfig page 
@@ -41,14 +36,6 @@ viewMainContent  { title, content } =
     }
     
 
--- view :  Page -> { title : String, content : Html msg } -> Html msg  -> {title: String, header : Html msg, content: Html msg, footer: Html msg}
--- view page { title, content } searchBoxContent =
---     { title = title ++ " - Dictionary"
---     , header = viewHeader searchBoxContent page 
---     , content = content
---     , footer = viewFooter
---     }
-
 viewHeader : Html msg -> Page -> Html msg
 viewHeader searchBoxContent page  =
     header [ class "header"]
@@ -56,83 +43,47 @@ viewHeader searchBoxContent page  =
         , searchBoxContent
         , nav [ class "nav__container" ]
             [ ul [class "nav__list"] 
-                [ li [class "nav__item nav__item--active"]
-                    [ a [href "", class "nav__link"] 
-                        [ svg [ SvgAttributes.class "nav__icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-home" ] [] ]
-                        , span [] [text "home"]
-                        ]
-                    ]
-                
-                , li [class "nav__item"]
-                    [ a [href "", class "nav__link"]
-                        [ svg [ SvgAttributes.class "nav__icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-key" ] [] ]
-                        , span [] [text "favorites"]
-                        ]
-                    ]
-                ]
+                (viewMenu page)
             ]
         ]
 
--- viewMenu : Page -> Maybe Viewer -> List (Html msg)
--- viewMenu page maybeViewer =
---     let
---         linkTo = navbarLink page
---     in
-    
---     case maybeViewer of
---         Just viewer ->
---             let
---                 cred = Viewer.cred viewer
---                 username = Cred.username cred
---                 avatar = Profile.avatar (Viewer.profile viewer)
---             in
---                 [ linkTo Route.NewArticle [ i [ class "ion-compose" ] [], text " New Post" ]
---                 , linkTo Route.Settings [ i [ class "ion-gear-a" ] [], text " Settings" ]
---                 , linkTo
---                     (Route.Profile username)
---                     [ img [ class "user-pic", Avatar.src avatar ] []
---                     , Username.toHtml username
---                     ]
---                 , linkTo Route.Logout [ text "sign out"]
---                 ]
-
-    
---         Nothing ->
---                 [ linkTo Route.Login [ text "sign in"]
---                 , linkTo Route.Register [ text "sign up"]
---                 ]
+viewMenu : Page  -> List (Html msg)
+viewMenu page =
+    let
+        linkTo = navbarLink page
+    in
+        [ linkTo Route.Home 
+            [ svg [ SvgAttributes.class "nav__icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-home" ] [] ]
+            , span [] [text "home"]
+            ]
+        , linkTo Route.Favorites
+            [ svg [ SvgAttributes.class "nav__icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-star-full" ] [] ]
+            , span [] [text "favorites"]
+            ]
+        ]
 
 viewFooter : Html msg
 viewFooter =
     footer []
         [ 
-          
-             text "footer"
-          
+            text ""
         ]
 
--- navbarLink : Page -> Route -> List (Html msg) -> Html msg
--- navbarLink page route linkContent =
---     li [ classList [("nav-item", True), ("active", isActive page route)] ]
---         [ a [ class "nav-link", Route.href route] linkContent ] 
+navbarLink : Page -> Route -> List (Html msg) -> Html msg
+navbarLink page route linkContent =
+    li [classList [("nav__item", True), ("nav__item-active", isActive page route)]]
+        [ a [Route.href route, class "nav__link"] linkContent
+        ]
 
--- isActive : Page -> Route -> Bool
--- isActive page route =
---     case ( page, route ) of
---         (Home, Route.Home) ->
---             True
---         (Login, Route.Login) ->
---             True
---         (Register, Route.Register) ->
---             True
---         ( Settings, Route.Settings) ->
---             True
---         ( Profile pageUsername, Route.Profile routeUsername) ->
---             pageUsername == routeUsername
---         (NewArticle, Route.NewArticle) ->
---             True
---         _ ->
---             False
+isActive : Page -> Route -> Bool
+isActive page route =
+    case ( page, route ) of
+        (Home, Route.Home) ->
+            True
+        (Favorites, Route.Favorites) ->
+            True
+        _ ->
+            False
 
 -- -- Render dismissable errors. We use this all over the place!
 -- viewError : msg -> List String -> Html msg

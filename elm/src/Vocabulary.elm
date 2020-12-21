@@ -1,11 +1,11 @@
-module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, id, entries, headword, favorite, unfavorite)
+module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, id, entries, headword, favorite, unfavorite, toFavored)
 
 import Json.Decode as Decode exposing (Decoder, Value, list, string, at, field, index, oneOf, value, maybe, map2)
 import Json.Decode.Pipeline exposing (custom, hardcoded, required, optional)
 import Http
 import Api exposing (url, userReplace)
 import Vocabulary.Slug as Slug exposing (Slug)
-import Favorites exposing (Favorites)
+import Favorites exposing (Favorites, Favored)
 import Viewer exposing (Viewer)
 
 
@@ -170,21 +170,25 @@ explanHelper idea =
 
 
 -- FAVORITE
-favorite : Viewer -> Slug -> String -> Cmd msg
-favorite viewer slug text =
+toFavored : Word -> Favored
+toFavored wor =
+  Favored wor.slug wor.id wor.headword wor.shortDefine
+
+favorite : Viewer -> Favored -> Cmd msg
+favorite viewer fav =
   let
     oldFavor = Viewer.favorites viewer
   in
-    Favorites.add slug text oldFavor
+    Favorites.add fav oldFavor
       |> Viewer.updateFavor viewer
       |> Viewer.store
   
 
-unfavorite : Viewer -> String -> Cmd msg
-unfavorite viewer  text =
+unfavorite : Viewer -> Favored -> Cmd msg
+unfavorite viewer fav =
   let
     oldFavor = Viewer.favorites viewer
   in
-    Favorites.remove text oldFavor
+    Favorites.remove fav oldFavor
       |> Viewer.updateFavor viewer
       |> Viewer.store

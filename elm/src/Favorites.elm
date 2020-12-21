@@ -1,6 +1,6 @@
-module Favorites exposing (Favorites, decoder, encode, add, remove, emptyList, isFavorited)
+module Favorites exposing (Favorites, Favored, decoder, encode, add, remove, emptyList, isFavorited, length, toList)
 
-import Json.Decode as Decode exposing (Decoder, field, string)
+import Json.Decode as Decode exposing (Decoder, field, string, list)
 import Json.Encode as Encode exposing (Value)
 import Vocabulary.Slug as Slug exposing (Slug)
 
@@ -9,7 +9,9 @@ type Favorites
 
 type alias Favored =
     { slug : Slug
+    , id : String
     , headword : String
+    , shortDefine : List String
     } 
 
 -- create 
@@ -19,26 +21,40 @@ emptyList : Favorites
 emptyList = 
   Favorites []
 
+
 -- TRANSFORM
 
-add : Slug -> String -> Favorites -> Favorites
-add slug headword (Favorites listFav) =
-  Favorites ( Favored slug headword :: listFav)
+length : Favorites -> Int
+length (Favorites info) =
+  List.length info
 
-remove : String -> Favorites -> Favorites
-remove headword (Favorites listFav) =
-  Favorites (List.filter (\s -> s.headword /= headword) listFav)
+add : Favored -> Favorites -> Favorites
+add favored (Favorites listFav) =
+  Favorites ( favored :: listFav)
+
+remove : Favored -> Favorites -> Favorites
+remove favored (Favorites listFav) =
+  Favorites (List.filter (\s -> s.headword /= favored.headword) listFav)
 
 isFavorited : String -> Favorites -> Bool
 isFavorited headword (Favorites listFav) =
   List.any (\f -> f.headword == headword) listFav
+
+toList : Favorites -> List Favored
+toList (Favorites info) =
+  info
 
 -- SERIALIZATION
 encode : Favorites -> Value
 encode (Favorites listFav) =
   let
       favoredObj f = 
-        Encode.object [("slug", Slug.encode f.slug), ("headword", Encode.string f.headword)]
+        Encode.object 
+          [ ("slug", Slug.encode f.slug)
+          , ("id", Encode.string f.id)
+          , ("headword", Encode.string f.headword)
+          , ("shortDefine", Encode.list Encode.string f.shortDefine)
+          ]
   in
   Encode.list favoredObj listFav
     
@@ -47,9 +63,11 @@ decoder : Decoder Favorites
 decoder =
   let
       configDecoder 
-        = Decode.map2 Favored
+        = Decode.map4 Favored
           (field "slug" (Slug.decoder Decode.string))
+          (field "id" string)
           (field "headword" string)
+          (field "shortDefine" (list string))
   in
   Decode.list configDecoder
     |> Decode.map Favorites

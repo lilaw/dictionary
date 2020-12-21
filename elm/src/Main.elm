@@ -10,9 +10,10 @@ import Html exposing (..)
 import Route exposing (Route)
 import Session exposing (Session)
 import Page as ViewPage
-import Vocabulary.Slug as Slug
 import Page.Vocabulary as Vocabulary
+import Page.Favorites as Favorites
 import Header.SearchBox as SearchBox
+
 
 
 -- model 
@@ -23,6 +24,7 @@ type alias Model =
 
 type Page
     =  Vocabulary Vocabulary.Model
+    | Favorites Favorites.Model
     | Redirect Session
 
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg)
@@ -61,6 +63,8 @@ view model =
     case model.page of
         Vocabulary vocabulary ->
             margePage ViewPage.Other (Vocabulary.view vocabulary) GotVocabularyMsg
+        Favorites favorites -> 
+            margePage ViewPage.Favorites (Favorites.view favorites) GotFavoritesMsg
         Redirect _ ->
             { title = "vocabulary"
             , body = [text "red"]
@@ -72,6 +76,7 @@ view model =
 type Msg 
     = GotVocabularyMsg Vocabulary.Msg
     | GotSearchBoxMsg SearchBox.Msg
+    | GotFavoritesMsg Favorites.Msg
     | Ignored
     | ChangedUrl Url
     | ClickedLink Browser.UrlRequest
@@ -93,9 +98,12 @@ update msg model =
                  }    
                 , Cmd.map GotSearchBoxMsg newMsg
                 )
-        (GotVocabularyMsg subMsg, Vocabulary vocabulary) ->
+        ( GotVocabularyMsg subMsg, Vocabulary vocabulary ) ->
             Vocabulary.update subMsg vocabulary
                 |> updateWithPage Vocabulary GotVocabularyMsg model
+        ( GotFavoritesMsg subMsg, Favorites favorites ) ->
+            Favorites.update subMsg favorites
+                |> updateWithPage Favorites GotFavoritesMsg model
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model.page
         ( ClickedLink urlRequest, _ ) ->
@@ -144,6 +152,9 @@ changeRouteTo maybeRoute page =
         Just (Route.Vocabulary slug) ->
             Vocabulary.init session slug
                 |> updateWithPage Vocabulary GotVocabularyMsg model
+        Just (Route.Favorites) ->
+            Favorites.init session
+                |> updateWithPage Favorites GotFavoritesMsg model
         Just Route.Home -> 
             (model, Cmd.none)
 
@@ -168,6 +179,8 @@ toSession page =
             session
         Vocabulary vocabulary ->
             vocabulary.session
+        Favorites favorites ->
+            favorites.session
 
 
 
@@ -181,6 +194,8 @@ subscriptions model =
             Sub.none
         Vocabulary voc ->
             Sub.map GotVocabularyMsg (Vocabulary.subscriptions voc)
+        Favorites favorites ->
+            Sub.map GotFavoritesMsg (Favorites.subscriptions favorites)
 
        
 

@@ -16,7 +16,7 @@ import Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder)
 import Route exposing (Route)
 import Vocabulary.Slug as Slug exposing (Slug)
 import Viewer exposing (Viewer)
-import Favorites
+import Favorites exposing (Favored)
 
 type alias Model =
     { session : Session
@@ -170,7 +170,7 @@ vocabularyView selectedEntry vocabulary viewer=
                                 Nothing ->
                                     text ""
                             ]
-                        , favoriteButton viewer word.slug word.headword
+                        , favoriteButton viewer word
                         ]
                 
                 shortDefineView shortDefine =
@@ -253,18 +253,18 @@ sentencesView sentences =
         List.map (\s -> li [class "vocabulary__example"] (textHtml s)) sentences
     
 
-favoriteButton : Viewer -> Slug -> String -> Html Msg
-favoriteButton viewer slug headword =
+favoriteButton : Viewer -> Word -> Html Msg
+favoriteButton viewer word =
     let
         favorited 
-            = Favorites.isFavorited headword 
+            = Favorites.isFavorited word.headword 
                 <| Viewer.favorites viewer
     in
         if favorited then
-            button [class "vocabulary__save", onClick (ClickedUnfavorite viewer headword)]
+            button [class "vocabulary__save", onClick (ClickedUnfavorite viewer word)]
                 [ svg [ SvgAttributes.class "vocabulary__save-icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-star-full" ] [] ] ]
         else 
-            button [class "vocabulary__save", onClick (ClickedFavorite viewer slug headword)]
+            button [class "vocabulary__save", onClick (ClickedFavorite viewer word)]
                 [ svg [ SvgAttributes.class "vocabulary__save-icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-star" ] [] ] ]
     
 
@@ -288,8 +288,8 @@ type Msg
     = CompetedVocabularyLoad (Result Http.Error Vocabulary)
     | ClickedEntry String
     | ClickedAudio
-    | ClickedFavorite Viewer Slug String
-    | ClickedUnfavorite Viewer String
+    | ClickedFavorite Viewer Word
+    | ClickedUnfavorite Viewer Word
     | GotSession Session
 
 update : Msg -> Model ->  ( Model, Cmd Msg )
@@ -301,10 +301,10 @@ update msg model =
             ( {model | selectedEntry = Just (Id id)}, Cmd.none)
         ClickedAudio ->
             ( model, Api.soundCmdToJs "play" )
-        ClickedFavorite viewer slug headword ->
-            ( model, Vocabulary.favorite viewer slug headword)
-        ClickedUnfavorite viewer headword ->
-            ( model, Vocabulary.unfavorite viewer headword)
+        ClickedFavorite viewer word ->
+            ( model, Vocabulary.favorite viewer (Vocabulary.toFavored word))
+        ClickedUnfavorite viewer word ->
+            ( model, Vocabulary.unfavorite viewer (Vocabulary.toFavored word))
         CompetedVocabularyLoad (Err errors) ->
             let
                 e = Debug.log "error" errors
