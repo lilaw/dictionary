@@ -1,10 +1,11 @@
-module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, id, entries, headword, favorite, unfavorite, toFavored)
+module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, entries, headword, favorite, unfavorite, toFavored)
 
 import Json.Decode as Decode exposing (Decoder, Value, list, string, at, field, index, oneOf, value, maybe, map2)
 import Json.Decode.Pipeline exposing (custom, hardcoded, required, optional)
 import Http
 import Api exposing (url, userReplace)
 import Vocabulary.Slug as Slug exposing (Slug)
+import Vocabulary.Id as Id exposing (Id)
 import Favorites exposing (Favorites, Favored)
 import Viewer exposing (Viewer)
 
@@ -20,7 +21,7 @@ type alias Internals =
     }
 
 type alias Word =
-    { id : String
+    { id : Id
     , headword : String
     , slug : Slug
     , define : Maybe (List (List Sense))
@@ -58,9 +59,6 @@ relatedWord : Vocabulary -> List Word
 relatedWord (Vocabulary inter) =
   inter.related
 
-id : Word -> String
-id w = 
-  w.id
   
 headword : Word -> String
 headword w = 
@@ -84,7 +82,7 @@ decoder slug =
 wordDecode : Decoder Word
 wordDecode = 
   Decode.succeed Word
-    |> custom (at [ "meta", "id" ] string) -- id 
+    |> custom (at [ "meta", "id" ] Id.decoder) -- id 
     |> custom (at [ "meta", "id" ] stringWithoutSuffix) -- for headword, headword is an id without suffix
     |> custom (at [ "meta", "id" ] (Slug.decoder stringWithoutSuffix))
     |> custom (maybe 

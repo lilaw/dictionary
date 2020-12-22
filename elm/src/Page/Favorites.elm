@@ -62,7 +62,7 @@ viewFavored viewer favored =
         figure [class "favored"]
             [ button [class "favored__remove", onCLickStopPropagation (ClickedUnfavorite viewer favored), type_ "button"]
                 [ svg [ SvgAttributes.class "favored__remove-icon"] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-close" ] [] ] ]
-            , a [Route.href (Route.Vocabulary favored.slug), class "favored__link" ] 
+            , a [Route.href (Route.Vocabulary favored.slug (Just favored.id)), class "favored__link" ] 
                 [ figcaption [class "favored__header"] 
                     [ span [class "favored__headword heading-3"] [text favored.headword] ]
                 , ul [class "favored__defines"] <|

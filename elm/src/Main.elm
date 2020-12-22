@@ -149,8 +149,8 @@ changeRouteTo maybeRoute page =
         Nothing ->
             (model, Cmd.none)
 
-        Just (Route.Vocabulary slug) ->
-            Vocabulary.init session slug
+        Just (Route.Vocabulary slug id) ->
+            Vocabulary.init session slug id
                 |> updateWithPage Vocabulary GotVocabularyMsg model
         Just (Route.Favorites) ->
             Favorites.init session

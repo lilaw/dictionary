@@ -3,13 +3,14 @@ module Favorites exposing (Favorites, Favored, decoder, encode, add, remove, emp
 import Json.Decode as Decode exposing (Decoder, field, string, list)
 import Json.Encode as Encode exposing (Value)
 import Vocabulary.Slug as Slug exposing (Slug)
+import Vocabulary.Id as Id exposing (Id)
 
 type Favorites 
   = Favorites (List Favored)
 
 type alias Favored =
     { slug : Slug
-    , id : String
+    , id : Id
     , headword : String
     , shortDefine : List String
     } 
@@ -51,7 +52,7 @@ encode (Favorites listFav) =
       favoredObj f = 
         Encode.object 
           [ ("slug", Slug.encode f.slug)
-          , ("id", Encode.string f.id)
+          , ("id", Encode.string <| Id.toString f.id)
           , ("headword", Encode.string f.headword)
           , ("shortDefine", Encode.list Encode.string f.shortDefine)
           ]
@@ -65,7 +66,7 @@ decoder =
       configDecoder 
         = Decode.map4 Favored
           (field "slug" (Slug.decoder Decode.string))
-          (field "id" string)
+          (field "id" Id.decoder)
           (field "headword" string)
           (field "shortDefine" (list string))
   in
