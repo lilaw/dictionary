@@ -23,6 +23,7 @@ emptyList =
   Favorites []
 
 
+
 -- TRANSFORM
 
 length : Favorites -> Int
@@ -44,6 +45,7 @@ isFavorited headword (Favorites listFav) =
 toList : Favorites -> List Favored
 toList (Favorites info) =
   info
+
 
 -- SERIALIZATION
 encode : Favorites -> Value

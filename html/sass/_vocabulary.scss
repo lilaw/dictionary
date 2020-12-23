@@ -1,14 +1,89 @@
+@mixin icon {
+  background-color: transparent;
+  color: currentColor;
+  border: none;
+  cursor: pointer;
+}
+
 .vocabulary {
   grid-column: 3 / -1;
   display: grid;
   padding: 1.5rem;
   background-color: $color-grey-dark-3;
   background-clip: content-box;
+  font-size: 1.8rem;
   
   &__container {
     padding: 1.5rem;
   }
 
+
+
+  // header
+  &__header {
+    display: flex;
+    align-items: baseline;
+    margin: 2rem 2rem 0 1rem;
+  }
+  &__headword {
+    text-transform: capitalize
+  }
+  &__functional-label {
+    margin-left: 1rem;
+
+  }
+  &__pronunciation {
+    display: flex;
+    align-items: center;
+    margin-left: 2rem;
+  }
+  &__ipa {
+    &:before, &:after {
+      content: " /";
+    }
+  }
+  &__sound {
+    @include icon;
+    margin-left: 1rem;
+    &-icon {
+      fill: $color-primary;
+      width: 2rem;
+      height: 2rem;
+    }
+    &-audio {
+
+    }
+  }
+  
+  &__brief-container {
+    margin: 0 2rem;
+  }
+
+  &__brief {
+    padding: 0 2rem;
+    &-list {
+      padding: 0 2rem;
+      list-style-position: inside;
+      border: .1rem solid $color-primary-dark;
+    }
+    &-item {
+      padding-left: 2rem;
+      &:first-child { padding-top: 2rem; }
+      &:last-child { padding-bottom: 2rem; }
+    }
+  }
+  
+  &__save {
+    @include icon;
+    margin-left: auto;
+    &-icon, &-icon {
+      fill: $color-primary;
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }  
+
+  //  definiton
   &__definition {
     padding-left: 1em;
     font-size: 1.7rem;
@@ -71,7 +146,6 @@
     &::after {
       content: "\0020" "]" "\0020";
     }
-    
   }
   
   &__seealso {
@@ -79,5 +153,12 @@
       content: "\2014" "\0020" "\0020";
     }
     
+  }
+
+  
+  &__crossRef {
+    margin: 1rem;
+    padding-left: 1em;
+    font-size: 1.7rem;
   }
 }

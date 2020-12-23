@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        
+        <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:300,400,400i|Nunito:300,300i" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="shortcut icon" type="image/png" href="img/favicon.png">
+        
+        <title>dictionary</title>
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <img src="img/logo.png" alt="header logo" class="header__logo">
+                <form action="" class="search">
+                    <input type="text" class="search__input search__input-error" required>
+                    <button class="search__btn">
+                        <svg class="search__icon">
+                            <use href="img/sprite.svg#icon-magnifying-glass"></use>
+                        </svg>
+                    </button>
+                </form>
+                <nav class="nav">
+                    <ul class="nav__list">
+                        <li class="nav__item nav__item--active">
+                            <a href="#" class="nav__link">
+                                <svg class="nav__icon">
+                                    <use href="img/sprite.svg#icon-home"></use>
+                                </svg>
+                                <span>home</span>
+                            </a>
+                        </li>
+                        <li class="nav__item">
+                            <a href="#" class="nav__link">
+                                <svg class="nav__icon">
+                                    <use href="img/sprite.svg#icon-key"></use>
+                                </svg>
+                                <span>favorites</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </header>
+                <div class="content">
+                    <section class="showcase mb-md">
+                        <header class="showcase__header">
+                            <h3 class="showcase__title heading-3">recent</h3>
+                            <div class="btn-ranges">
+                                <button class="btn-ranges__btn showcase__btn--clear">
+                                    clear all
+                                </button>
+                                <button class="btn-ranges__btn showcase__btn--edit">
+                                    done
+                                </button>
+                            </div>
+                        </header>
+                        <ul class="showcase__list showcase__list-edit">
+                            <li class="showcase__item">
+                                <a href="" class="showcase__link">go</a>
+                                <button class="showcase__remove">
+                                    <svg class="showcase__remove-icon">
+                                        <use href="img/sprite.svg#icon-close"></use>
+                                    </svg>
+                                </button>
+                            </li>
+                        </ul>
+                    </section>
+                    <section class="showcase">
+                        <header class="showcase__header">
+                            <h3 class="showcase__title heading-3">favorites</h3>
+                            <div class="btn-ranges">
+                                <a href="" class="btn-ranges__btn showcase__link">more</a>
+                            </div>
+                        </header>
+                        <ul class="showcase__list">
+                            <li class="showcase__item">
+                                <a href="" class="showcase__link">go</a>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+        </div>
+    </body>
+</html>

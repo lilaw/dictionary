@@ -1,0 +1,93 @@
+.showcase {
+  padding: 2rem;
+  grid-column: 1 / -1;
+  background-color: $color-grey-dark-3;
+  
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  &__title {
+    text-transform: uppercase;
+    color: $color-primary;
+
+  }
+
+  
+  &__list {
+    height: 22rem;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min-content, 20rem));
+    grid-template-rows: repeat(4, min-content);
+    grid-auto-flow: column;
+    &-favorites {
+      grid-auto-flow: initial;
+
+    }
+  }
+  &__item {
+    background-color: $color-secondary;
+    background-clip: content-box;
+    list-style-type: none;
+    font-size: 1.8rem;
+    padding: .5rem;
+    display: flex;
+    height: 4.5rem;
+    transform: translateZ(0);
+  }
+  &__link {
+    color: currentColor;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+    line-height: 1.8;
+    flex: 2;
+  }
+  &__remove {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+    border: unset;
+    color: unset;
+    background-color: transparent;
+    vertical-align: text-top;
+    padding: 0 .5rem;
+    &-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      fill: currentColor;
+    }
+  
+
+  }
+
+.showcase__list-edit {
+  .showcase__remove {
+    visibility: visible;
+  }   
+}
+
+
+
+
+
+
+
+
+
+
+}
+
+.btn-ranges {
+  &__btn {
+    background-color: $color-secondary;
+    border: unset;
+    color: unset;
+    font-size: 1.6rem;
+    padding: 1rem;
+    cursor: pointer;
+    margin-left: 1rem;
+  }
+}

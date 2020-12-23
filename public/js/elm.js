@@ -5576,8 +5576,20 @@ var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Main$Redirect = function (a) {
 	return {$: 'Redirect', a: a};
 };
+var $author$project$Main$Favorites = function (a) {
+	return {$: 'Favorites', a: a};
+};
+var $author$project$Main$GotFavoritesMsg = function (a) {
+	return {$: 'GotFavoritesMsg', a: a};
+};
+var $author$project$Main$GotHomeMsg = function (a) {
+	return {$: 'GotHomeMsg', a: a};
+};
 var $author$project$Main$GotVocabularyMsg = function (a) {
 	return {$: 'GotVocabularyMsg', a: a};
+};
+var $author$project$Main$Home = function (a) {
+	return {$: 'Home', a: a};
 };
 var $author$project$Main$Vocabulary = function (a) {
 	return {$: 'Vocabulary', a: a};
@@ -5589,8 +5601,20 @@ var $author$project$Header$SearchBox$init = function (session) {
 		session: session
 	};
 };
-var $author$project$Page$Vocabulary$Loading = {$: 'Loading'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Page$Favorites$init = function (session) {
+	return _Utils_Tuple2(
+		{itemPerPage: 9, session: session, viewingPage: 1},
+		$elm$core$Platform$Cmd$none);
+};
+var $author$project$Page$Home$init = function (session) {
+	return _Utils_Tuple2(
+		{isEditingRecent: false, session: session},
+		$elm$core$Platform$Cmd$none);
+};
+var $author$project$Page$Vocabulary$Loading = {$: 'Loading'};
+var $author$project$Page$Vocabulary$PassedSlowLoadThreshold = {$: 'PassedSlowLoadThreshold'};
 var $author$project$Page$Vocabulary$CompetedVocabularyLoad = function (a) {
 	return {$: 'CompetedVocabularyLoad', a: a};
 };
@@ -5598,6 +5622,9 @@ var $author$project$Vocabulary$Internals = F3(
 	function (slug, entries, related) {
 		return {entries: entries, related: related, slug: slug};
 	});
+var $author$project$Vocabulary$Suggestion = function (a) {
+	return {$: 'Suggestion', a: a};
+};
 var $author$project$Vocabulary$Vocabulary = function (a) {
 	return {$: 'Vocabulary', a: a};
 };
@@ -5614,6 +5641,10 @@ var $elm$core$List$filter = F2(
 			list);
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
+var $author$project$Vocabulary$Slug$toString = function (_v0) {
+	var str = _v0.a;
+	return str;
+};
 var $author$project$Vocabulary$filterOutRelate = function (info) {
 	return _Utils_update(
 		info,
@@ -5621,13 +5652,17 @@ var $author$project$Vocabulary$filterOutRelate = function (info) {
 			entries: A2(
 				$elm$core$List$filter,
 				function (w) {
-					return _Utils_eq(w.headword, info.slug);
+					return _Utils_eq(
+						w.headword,
+						$author$project$Vocabulary$Slug$toString(info.slug));
 				},
 				info.entries),
 			related: A2(
 				$elm$core$List$filter,
 				function (w) {
-					return !_Utils_eq(w.headword, info.slug);
+					return !_Utils_eq(
+						w.headword,
+						$author$project$Vocabulary$Slug$toString(info.slug));
 				},
 				info.related)
 		});
@@ -5639,9 +5674,11 @@ var $elm$core$Basics$composeR = F3(
 	});
 var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$hardcoded = A2($elm$core$Basics$composeR, $elm$json$Json$Decode$succeed, $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom);
 var $elm$json$Json$Decode$list = _Json_decodeList;
-var $author$project$Vocabulary$Word = F4(
-	function (id, headword, define, functionalLabel) {
-		return {define: define, functionalLabel: functionalLabel, headword: headword, id: id};
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Vocabulary$Word = F9(
+	function (id, headword, slug, define, functionalLabel, ipa, audio, shortDefine, crossReffences) {
+		return {audio: audio, crossReffences: crossReffences, define: define, functionalLabel: functionalLabel, headword: headword, id: id, ipa: ipa, shortDefine: shortDefine, slug: slug};
 	});
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$at = F2(
@@ -5649,7 +5686,41 @@ var $elm$json$Json$Decode$at = F2(
 		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
 	});
 var $elm$json$Json$Decode$index = _Json_decodeIndex;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
+	function (key, valDecoder, decoder) {
+		return A2(
+			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+			A2($elm$json$Json$Decode$field, key, valDecoder),
+			decoder);
+	});
+var $author$project$Vocabulary$crossReffencesDecoder = A2(
+	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+	A2(
+		$elm$json$Json$Decode$field,
+		'cxtis',
+		A2(
+			$elm$json$Json$Decode$index,
+			0,
+			A2($elm$json$Json$Decode$field, 'cxt', $elm$json$Json$Decode$string))),
+	A3(
+		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+		'cxl',
+		$elm$json$Json$Decode$string,
+		$elm$json$Json$Decode$succeed(
+			F2(
+				function (label, hyperlinktext) {
+					return label + (' {sx|' + (hyperlinktext + '||}'));
+				}))));
+var $author$project$Vocabulary$Id$Id = function (a) {
+	return {$: 'Id', a: a};
+};
+var $author$project$Vocabulary$Id$decoder = A2($elm$json$Json$Decode$map, $author$project$Vocabulary$Id$Id, $elm$json$Json$Decode$string);
+var $author$project$Vocabulary$Slug$Slug = function (a) {
+	return {$: 'Slug', a: a};
+};
+var $author$project$Vocabulary$Slug$decoder = function (modifiedString) {
+	return A2($elm$json$Json$Decode$map, $author$project$Vocabulary$Slug$Slug, modifiedString);
+};
 var $elm$json$Json$Decode$maybe = function (decoder) {
 	return $elm$json$Json$Decode$oneOf(
 		_List_fromArray(
@@ -5657,41 +5728,6 @@ var $elm$json$Json$Decode$maybe = function (decoder) {
 				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder),
 				$elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing)
 			]));
-};
-var $elm$regex$Regex$Match = F4(
-	function (match, index, number, submatches) {
-		return {index: index, match: match, number: number, submatches: submatches};
-	});
-var $elm$regex$Regex$fromStringWith = _Regex_fromStringWith;
-var $elm$regex$Regex$fromString = function (string) {
-	return A2(
-		$elm$regex$Regex$fromStringWith,
-		{caseInsensitive: false, multiline: false},
-		string);
-};
-var $elm$regex$Regex$replace = _Regex_replaceAtMost(_Regex_infinity);
-var $author$project$Api$userReplace = F3(
-	function (userRegex, replacer, string) {
-		var _v0 = $elm$regex$Regex$fromString(userRegex);
-		if (_v0.$ === 'Nothing') {
-			return string;
-		} else {
-			var regex = _v0.a;
-			return A3($elm$regex$Regex$replace, regex, replacer, string);
-		}
-	});
-var $author$project$Vocabulary$removeSuffix = function (w) {
-	return _Utils_update(
-		w,
-		{
-			headword: A3(
-				$author$project$Api$userReplace,
-				':\\d+$',
-				function (_v0) {
-					return '';
-				},
-				w.id)
-		});
 };
 var $author$project$Vocabulary$Sense = F2(
 	function (grammatical, explan) {
@@ -5711,7 +5747,6 @@ var $author$project$Vocabulary$Other = {$: 'Other'};
 var $author$project$Vocabulary$UsageNote = function (a) {
 	return {$: 'UsageNote', a: a};
 };
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Vocabulary$explanHelper = function (idea) {
 	switch (idea) {
 		case 'text':
@@ -5809,46 +5844,137 @@ var $author$project$Vocabulary$senseDecoder = A2(
 					1,
 					A2($elm$json$Json$Decode$field, 'sgram', $elm$json$Json$Decode$string)))),
 		$elm$json$Json$Decode$succeed($author$project$Vocabulary$Sense)));
-var $author$project$Vocabulary$wordDecode = function (slug) {
+var $elm$regex$Regex$Match = F4(
+	function (match, index, number, submatches) {
+		return {index: index, match: match, number: number, submatches: submatches};
+	});
+var $elm$regex$Regex$fromStringWith = _Regex_fromStringWith;
+var $elm$regex$Regex$fromString = function (string) {
 	return A2(
-		$elm$json$Json$Decode$map,
-		$author$project$Vocabulary$removeSuffix,
+		$elm$regex$Regex$fromStringWith,
+		{caseInsensitive: false, multiline: false},
+		string);
+};
+var $elm$regex$Regex$replace = _Regex_replaceAtMost(_Regex_infinity);
+var $author$project$Api$userReplace = F3(
+	function (userRegex, replacer, string) {
+		var _v0 = $elm$regex$Regex$fromString(userRegex);
+		if (_v0.$ === 'Nothing') {
+			return string;
+		} else {
+			var regex = _v0.a;
+			return A3($elm$regex$Regex$replace, regex, replacer, string);
+		}
+	});
+var $author$project$Vocabulary$stringWithoutSuffix = A2(
+	$elm$json$Json$Decode$map,
+	A2(
+		$author$project$Api$userReplace,
+		':\\d+$',
+		function (_v0) {
+			return '';
+		}),
+	$elm$json$Json$Decode$string);
+var $author$project$Vocabulary$wordDecode = A2(
+	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+	$elm$json$Json$Decode$maybe(
+		A2(
+			$elm$json$Json$Decode$field,
+			'cxs',
+			A2($elm$json$Json$Decode$index, 0, $author$project$Vocabulary$crossReffencesDecoder))),
+	A3(
+		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+		'shortdef',
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string),
 		A2(
 			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
 			$elm$json$Json$Decode$maybe(
-				A2($elm$json$Json$Decode$field, 'fl', $elm$json$Json$Decode$string)),
+				A2(
+					$elm$json$Json$Decode$at,
+					_List_fromArray(
+						['hwi', 'prs']),
+					A2(
+						$elm$json$Json$Decode$index,
+						0,
+						A2(
+							$elm$json$Json$Decode$at,
+							_List_fromArray(
+								['sound', 'audio']),
+							$elm$json$Json$Decode$string)))),
 			A2(
 				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
 				$elm$json$Json$Decode$maybe(
 					A2(
-						$elm$json$Json$Decode$field,
-						'def',
+						$elm$json$Json$Decode$at,
+						_List_fromArray(
+							['hwi', 'prs']),
 						A2(
 							$elm$json$Json$Decode$index,
 							0,
-							A2(
-								$elm$json$Json$Decode$field,
-								'sseq',
-								$elm$json$Json$Decode$list(
-									$elm$json$Json$Decode$list($author$project$Vocabulary$senseDecoder)))))),
+							A2($elm$json$Json$Decode$field, 'ipa', $elm$json$Json$Decode$string)))),
 				A2(
 					$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
-					A2(
-						$elm$json$Json$Decode$at,
-						_List_fromArray(
-							['meta', 'id']),
-						$elm$json$Json$Decode$string),
+					$elm$json$Json$Decode$maybe(
+						A2($elm$json$Json$Decode$field, 'fl', $elm$json$Json$Decode$string)),
 					A2(
 						$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+						$elm$json$Json$Decode$maybe(
+							$elm$json$Json$Decode$oneOf(
+								_List_fromArray(
+									[
+										A2(
+										$elm$json$Json$Decode$field,
+										'def',
+										A2(
+											$elm$json$Json$Decode$index,
+											0,
+											A2(
+												$elm$json$Json$Decode$field,
+												'sseq',
+												$elm$json$Json$Decode$list(
+													$elm$json$Json$Decode$list($author$project$Vocabulary$senseDecoder))))),
+										A2(
+										$elm$json$Json$Decode$field,
+										'dros',
+										A2(
+											$elm$json$Json$Decode$index,
+											0,
+											A2(
+												$elm$json$Json$Decode$field,
+												'def',
+												A2(
+													$elm$json$Json$Decode$index,
+													0,
+													A2(
+														$elm$json$Json$Decode$field,
+														'sseq',
+														$elm$json$Json$Decode$list(
+															$elm$json$Json$Decode$list($author$project$Vocabulary$senseDecoder)))))))
+									]))),
 						A2(
-							$elm$json$Json$Decode$at,
-							_List_fromArray(
-								['meta', 'id']),
-							$elm$json$Json$Decode$string),
-						$elm$json$Json$Decode$succeed($author$project$Vocabulary$Word))))));
-};
+							$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+							A2(
+								$elm$json$Json$Decode$at,
+								_List_fromArray(
+									['meta', 'id']),
+								$author$project$Vocabulary$Slug$decoder($author$project$Vocabulary$stringWithoutSuffix)),
+							A2(
+								$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+								A2(
+									$elm$json$Json$Decode$at,
+									_List_fromArray(
+										['meta', 'id']),
+									$author$project$Vocabulary$stringWithoutSuffix),
+								A2(
+									$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+									A2(
+										$elm$json$Json$Decode$at,
+										_List_fromArray(
+											['meta', 'id']),
+										$author$project$Vocabulary$Id$decoder),
+									$elm$json$Json$Decode$succeed($author$project$Vocabulary$Word))))))))));
 var $author$project$Vocabulary$decoder = function (slug) {
-	return A2(
+	var vocDecoder = A2(
 		$elm$json$Json$Decode$map,
 		$author$project$Vocabulary$Vocabulary,
 		A2(
@@ -5856,16 +5982,21 @@ var $author$project$Vocabulary$decoder = function (slug) {
 			$author$project$Vocabulary$filterOutRelate,
 			A2(
 				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
-				$elm$json$Json$Decode$list(
-					$author$project$Vocabulary$wordDecode(slug)),
+				$elm$json$Json$Decode$list($author$project$Vocabulary$wordDecode),
 				A2(
 					$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
-					$elm$json$Json$Decode$list(
-						$author$project$Vocabulary$wordDecode(slug)),
+					$elm$json$Json$Decode$list($author$project$Vocabulary$wordDecode),
 					A2(
 						$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$hardcoded,
 						slug,
 						$elm$json$Json$Decode$succeed($author$project$Vocabulary$Internals))))));
+	var sugDecoder = A2(
+		$elm$json$Json$Decode$map,
+		$author$project$Vocabulary$Suggestion,
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string));
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[vocDecoder, sugDecoder]));
 };
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
 var $elm$http$Http$BadStatus_ = F2(
@@ -6733,45 +6864,43 @@ var $author$project$Page$Vocabulary$fetch = function (slug) {
 			$lukewestby$elm_http_builder$HttpBuilder$get(
 				$author$project$Api$url(
 					_List_fromArray(
-						[slug])))));
+						[
+							$author$project$Vocabulary$Slug$toString(slug)
+						])))));
 };
-var $elm$core$Maybe$destruct = F3(
-	function (_default, func, maybe) {
-		if (maybe.$ === 'Just') {
-			var a = maybe.a;
-			return func(a);
-		} else {
-			return _default;
-		}
-	});
-var $elm$json$Json$Encode$null = _Json_encodeNull;
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Session$storeSession = _Platform_outgoingPort(
-	'storeSession',
-	function ($) {
-		return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
-	});
-var $author$project$Page$Vocabulary$init = F2(
-	function (session, slug) {
+var $elm$core$Process$sleep = _Process_sleep;
+var $author$project$Loading$slowThreshold = $elm$core$Process$sleep(500);
+var $author$project$Page$Vocabulary$init = F3(
+	function (session, slug, maybeId) {
 		return _Utils_Tuple2(
-			{errors: _List_Nil, selectedEntry: $elm$core$Maybe$Nothing, session: session, vocabulary: $author$project$Page$Vocabulary$Loading},
+			{errors: _List_Nil, selectedEntry: maybeId, session: session, vocabulary: $author$project$Page$Vocabulary$Loading},
 			$elm$core$Platform$Cmd$batch(
 				_List_fromArray(
 					[
 						$author$project$Page$Vocabulary$fetch(slug),
-						$author$project$Session$storeSession(
-						$elm$core$Maybe$Just('grppg'))
+						A2(
+						$elm$core$Task$perform,
+						function (_v0) {
+							return $author$project$Page$Vocabulary$PassedSlowLoadThreshold;
+						},
+						$author$project$Loading$slowThreshold)
 					])));
 	});
 var $elm$core$Debug$log = _Debug_log;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$toSession = function (page) {
-	if (page.$ === 'Redirect') {
-		var session = page.a;
-		return session;
-	} else {
-		var vocabulary = page.a;
-		return vocabulary.session;
+	switch (page.$) {
+		case 'Redirect':
+			var session = page.a;
+			return session;
+		case 'Vocabulary':
+			var vocabulary = page.a;
+			return vocabulary.session;
+		case 'Favorites':
+			var favorites = page.a;
+			return favorites.session;
+		default:
+			var home = page.a;
+			return home.session;
 	}
 };
 var $elm$core$Platform$Cmd$map = _Platform_map;
@@ -6800,17 +6929,33 @@ var $author$project$Main$changeRouteTo = F2(
 		if (maybeRoute.$ === 'Nothing') {
 			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		} else {
-			if (maybeRoute.a.$ === 'Vocabulary') {
-				var word = maybeRoute.a.a;
-				return A4(
-					$author$project$Main$updateWithPage,
-					$author$project$Main$Vocabulary,
-					$author$project$Main$GotVocabularyMsg,
-					model,
-					A2($author$project$Page$Vocabulary$init, session, word));
-			} else {
-				var _v1 = maybeRoute.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			switch (maybeRoute.a.$) {
+				case 'Vocabulary':
+					var _v1 = maybeRoute.a;
+					var slug = _v1.a;
+					var id = _v1.b;
+					return A4(
+						$author$project$Main$updateWithPage,
+						$author$project$Main$Vocabulary,
+						$author$project$Main$GotVocabularyMsg,
+						model,
+						A3($author$project$Page$Vocabulary$init, session, slug, id));
+				case 'Favorites':
+					var _v2 = maybeRoute.a;
+					return A4(
+						$author$project$Main$updateWithPage,
+						$author$project$Main$Favorites,
+						$author$project$Main$GotFavoritesMsg,
+						model,
+						$author$project$Page$Favorites$init(session));
+				default:
+					var _v3 = maybeRoute.a;
+					return A4(
+						$author$project$Main$updateWithPage,
+						$author$project$Main$Home,
+						$author$project$Main$GotHomeMsg,
+						model,
+						$author$project$Page$Home$init(session));
 			}
 		}
 	});
@@ -6829,39 +6974,95 @@ var $elm$core$Result$andThen = F2(
 		}
 	});
 var $elm$json$Json$Decode$decodeValue = _Json_run;
-var $author$project$Viewer$Internals = function (favorites) {
-	return {favorites: favorites};
-};
+var $author$project$Viewer$Internals = F2(
+	function (favorites, recent) {
+		return {favorites: favorites, recent: recent};
+	});
 var $author$project$Viewer$Viewer = function (a) {
 	return {$: 'Viewer', a: a};
 };
-var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
-	function (key, valDecoder, decoder) {
-		return A2(
-			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
-			A2($elm$json$Json$Decode$field, key, valDecoder),
-			decoder);
+var $author$project$Favorites$Favored = F4(
+	function (slug, id, headword, shortDefine) {
+		return {headword: headword, id: id, shortDefine: shortDefine, slug: slug};
 	});
+var $author$project$Favorites$Favorites = function (a) {
+	return {$: 'Favorites', a: a};
+};
+var $elm$json$Json$Decode$map4 = _Json_map4;
+var $author$project$Favorites$decoder = function () {
+	var configDecoder = A5(
+		$elm$json$Json$Decode$map4,
+		$author$project$Favorites$Favored,
+		A2(
+			$elm$json$Json$Decode$field,
+			'slug',
+			$author$project$Vocabulary$Slug$decoder($elm$json$Json$Decode$string)),
+		A2($elm$json$Json$Decode$field, 'id', $author$project$Vocabulary$Id$decoder),
+		A2($elm$json$Json$Decode$field, 'headword', $elm$json$Json$Decode$string),
+		A2(
+			$elm$json$Json$Decode$field,
+			'shortDefine',
+			$elm$json$Json$Decode$list($elm$json$Json$Decode$string)));
+	return A2(
+		$elm$json$Json$Decode$map,
+		$author$project$Favorites$Favorites,
+		$elm$json$Json$Decode$list(configDecoder));
+}();
+var $author$project$Recent$LastWord = F3(
+	function (slug, id, headword) {
+		return {headword: headword, id: id, slug: slug};
+	});
+var $author$project$Recent$Recent = function (a) {
+	return {$: 'Recent', a: a};
+};
+var $elm$json$Json$Decode$map3 = _Json_map3;
+var $author$project$Recent$decoder = function () {
+	var configDecoder = A4(
+		$elm$json$Json$Decode$map3,
+		$author$project$Recent$LastWord,
+		A2(
+			$elm$json$Json$Decode$field,
+			'slug',
+			$author$project$Vocabulary$Slug$decoder($elm$json$Json$Decode$string)),
+		A2($elm$json$Json$Decode$field, 'id', $author$project$Vocabulary$Id$decoder),
+		A2($elm$json$Json$Decode$field, 'headword', $elm$json$Json$Decode$string));
+	return A2(
+		$elm$json$Json$Decode$map,
+		$author$project$Recent$Recent,
+		$elm$json$Json$Decode$list(configDecoder));
+}();
 var $author$project$Viewer$decoder = A2(
 	$elm$json$Json$Decode$map,
 	$author$project$Viewer$Viewer,
 	A3(
 		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-		'favorites',
-		$elm$json$Json$Decode$string,
-		$elm$json$Json$Decode$succeed($author$project$Viewer$Internals)));
+		'recent',
+		$author$project$Recent$decoder,
+		A3(
+			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+			'favorites',
+			$author$project$Favorites$decoder,
+			$elm$json$Json$Decode$succeed($author$project$Viewer$Internals))));
+var $author$project$Favorites$emptyList = $author$project$Favorites$Favorites(_List_Nil);
+var $author$project$Recent$emptyList = $author$project$Recent$Recent(_List_Nil);
 var $author$project$Viewer$defaultViewer = $author$project$Viewer$Viewer(
-	{favorites: ''});
+	{favorites: $author$project$Favorites$emptyList, recent: $author$project$Recent$emptyList});
+var $author$project$Session$storageDecoder = function (viewerDecoder) {
+	return A2($elm$json$Json$Decode$field, 'user', viewerDecoder);
+};
 var $author$project$Session$decode = F2(
 	function (key, value) {
 		var _v0 = A2(
 			$elm$core$Result$andThen,
-			$elm$json$Json$Decode$decodeString($author$project$Viewer$decoder),
+			$elm$json$Json$Decode$decodeString(
+				$author$project$Session$storageDecoder($author$project$Viewer$decoder)),
 			A2($elm$json$Json$Decode$decodeValue, $elm$json$Json$Decode$string, value));
 		if (_v0.$ === 'Ok') {
-			var viewer = _v0.a;
-			return A2($author$project$Session$Guest, key, viewer);
+			var view = _v0.a;
+			return A2($author$project$Session$Guest, key, view);
 		} else {
+			var err = _v0.a;
+			var e = A2($elm$core$Debug$log, 'err', err);
 			return A2($author$project$Session$Guest, key, $author$project$Viewer$defaultViewer);
 		}
 	});
@@ -6984,10 +7185,12 @@ var $elm$url$Url$Parser$parse = F2(
 					url.fragment,
 					$elm$core$Basics$identity)));
 	});
+var $author$project$Route$Favorites = {$: 'Favorites'};
 var $author$project$Route$Home = {$: 'Home'};
-var $author$project$Route$Vocabulary = function (a) {
-	return {$: 'Vocabulary', a: a};
-};
+var $author$project$Route$Vocabulary = F2(
+	function (a, b) {
+		return {$: 'Vocabulary', a: a, b: b};
+	});
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
 };
@@ -7051,6 +7254,47 @@ var $elm$url$Url$Parser$oneOf = function (parsers) {
 				parsers);
 		});
 };
+var $elm$url$Url$Parser$query = function (_v0) {
+	var queryParser = _v0.a;
+	return $elm$url$Url$Parser$Parser(
+		function (_v1) {
+			var visited = _v1.visited;
+			var unvisited = _v1.unvisited;
+			var params = _v1.params;
+			var frag = _v1.frag;
+			var value = _v1.value;
+			return _List_fromArray(
+				[
+					A5(
+					$elm$url$Url$Parser$State,
+					visited,
+					unvisited,
+					params,
+					frag,
+					value(
+						queryParser(params)))
+				]);
+		});
+};
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0.a;
+		var parseAfter = _v1.a;
+		return $elm$url$Url$Parser$Parser(
+			function (state) {
+				return A2(
+					$elm$core$List$concatMap,
+					parseAfter,
+					parseBefore(state));
+			});
+	});
+var $elm$url$Url$Parser$questionMark = F2(
+	function (parser, queryParser) {
+		return A2(
+			$elm$url$Url$Parser$slash,
+			parser,
+			$elm$url$Url$Parser$query(queryParser));
+	});
 var $elm$url$Url$Parser$s = function (str) {
 	return $elm$url$Url$Parser$Parser(
 		function (_v0) {
@@ -7077,18 +7321,61 @@ var $elm$url$Url$Parser$s = function (str) {
 			}
 		});
 };
-var $elm$url$Url$Parser$slash = F2(
-	function (_v0, _v1) {
-		var parseBefore = _v0.a;
-		var parseAfter = _v1.a;
-		return $elm$url$Url$Parser$Parser(
-			function (state) {
-				return A2(
-					$elm$core$List$concatMap,
-					parseAfter,
-					parseBefore(state));
+var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
+	function (state) {
+		return _List_fromArray(
+			[state]);
+	});
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$url$Url$Parser$Internal$Parser = function (a) {
+	return {$: 'Parser', a: a};
+};
+var $elm$url$Url$Parser$Query$map = F2(
+	function (func, _v0) {
+		var a = _v0.a;
+		return $elm$url$Url$Parser$Internal$Parser(
+			function (dict) {
+				return func(
+					a(dict));
 			});
 	});
+var $elm$url$Url$Parser$Query$custom = F2(
+	function (key, func) {
+		return $elm$url$Url$Parser$Internal$Parser(
+			function (dict) {
+				return func(
+					A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2($elm$core$Dict$get, key, dict)));
+			});
+	});
+var $elm$url$Url$Parser$Query$string = function (key) {
+	return A2(
+		$elm$url$Url$Parser$Query$custom,
+		key,
+		function (stringList) {
+			if (stringList.b && (!stringList.b.b)) {
+				var str = stringList.a;
+				return $elm$core$Maybe$Just(str);
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
+		});
+};
+var $author$project$Vocabulary$Id$urlParser = A2(
+	$elm$url$Url$Parser$Query$map,
+	$elm$core$Maybe$map($author$project$Vocabulary$Id$Id),
+	$elm$url$Url$Parser$Query$string('id'));
 var $elm$url$Url$Parser$custom = F2(
 	function (tipe, stringToSomething) {
 		return $elm$url$Url$Parser$Parser(
@@ -7122,11 +7409,14 @@ var $elm$url$Url$Parser$custom = F2(
 				}
 			});
 	});
-var $elm$url$Url$Parser$string = A2($elm$url$Url$Parser$custom, 'STRING', $elm$core$Maybe$Just);
-var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
-	function (state) {
-		return _List_fromArray(
-			[state]);
+var $author$project$Vocabulary$Slug$urlParser = A2(
+	$elm$url$Url$Parser$custom,
+	'Slug',
+	function (str) {
+		return A2(
+			$elm$core$Maybe$map,
+			$author$project$Vocabulary$Slug$Slug,
+			$elm$url$Url$percentDecode(str));
 	});
 var $author$project$Route$parser = $elm$url$Url$Parser$oneOf(
 	_List_fromArray(
@@ -7138,7 +7428,11 @@ var $author$project$Route$parser = $elm$url$Url$Parser$oneOf(
 			A2(
 				$elm$url$Url$Parser$slash,
 				$elm$url$Url$Parser$s('vocabulary'),
-				$elm$url$Url$Parser$string))
+				A2($elm$url$Url$Parser$questionMark, $author$project$Vocabulary$Slug$urlParser, $author$project$Vocabulary$Id$urlParser))),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Route$Favorites,
+			$elm$url$Url$Parser$s('favorites'))
 		]));
 var $author$project$Route$fromUrl = function (url) {
 	return A2($elm$url$Url$Parser$parse, $author$project$Route$parser, url);
@@ -7155,14 +7449,14 @@ var $author$project$Main$init = F3(
 var $elm$core$Platform$Sub$map = _Platform_map;
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Page$Vocabulary$GotSession = function (a) {
+var $author$project$Page$Favorites$GotSession = function (a) {
 	return {$: 'GotSession', a: a};
 };
 var $elm$json$Json$Decode$value = _Json_decodeValue;
-var $author$project$Session$onSessionChange = _Platform_incomingPort('onSessionChange', $elm$json$Json$Decode$value);
+var $author$project$Api$onSessionChange = _Platform_incomingPort('onSessionChange', $elm$json$Json$Decode$value);
 var $author$project$Session$changes = F2(
 	function (toMsg, key) {
-		return $author$project$Session$onSessionChange(
+		return $author$project$Api$onSessionChange(
 			function (val) {
 				return toMsg(
 					A2($author$project$Session$decode, key, val));
@@ -7172,6 +7466,24 @@ var $author$project$Session$navKey = function (_v0) {
 	var key = _v0.a;
 	return key;
 };
+var $author$project$Page$Favorites$subscriptions = function (model) {
+	return A2(
+		$author$project$Session$changes,
+		$author$project$Page$Favorites$GotSession,
+		$author$project$Session$navKey(model.session));
+};
+var $author$project$Page$Home$GotSession = function (a) {
+	return {$: 'GotSession', a: a};
+};
+var $author$project$Page$Home$subscriptions = function (model) {
+	return A2(
+		$author$project$Session$changes,
+		$author$project$Page$Home$GotSession,
+		$author$project$Session$navKey(model.session));
+};
+var $author$project$Page$Vocabulary$GotSession = function (a) {
+	return {$: 'GotSession', a: a};
+};
 var $author$project$Page$Vocabulary$subscriptions = function (model) {
 	return A2(
 		$author$project$Session$changes,
@@ -7180,14 +7492,27 @@ var $author$project$Page$Vocabulary$subscriptions = function (model) {
 };
 var $author$project$Main$subscriptions = function (model) {
 	var _v0 = model.page;
-	if (_v0.$ === 'Redirect') {
-		return $elm$core$Platform$Sub$none;
-	} else {
-		var voc = _v0.a;
-		return A2(
-			$elm$core$Platform$Sub$map,
-			$author$project$Main$GotVocabularyMsg,
-			$author$project$Page$Vocabulary$subscriptions(voc));
+	switch (_v0.$) {
+		case 'Redirect':
+			return $elm$core$Platform$Sub$none;
+		case 'Vocabulary':
+			var voc = _v0.a;
+			return A2(
+				$elm$core$Platform$Sub$map,
+				$author$project$Main$GotVocabularyMsg,
+				$author$project$Page$Vocabulary$subscriptions(voc));
+		case 'Favorites':
+			var favorites = _v0.a;
+			return A2(
+				$elm$core$Platform$Sub$map,
+				$author$project$Main$GotFavoritesMsg,
+				$author$project$Page$Favorites$subscriptions(favorites));
+		default:
+			var home = _v0.a;
+			return A2(
+				$elm$core$Platform$Sub$map,
+				$author$project$Main$GotHomeMsg,
+				$author$project$Page$Home$subscriptions(home));
 	}
 };
 var $author$project$Main$GotSearchBoxMsg = function (a) {
@@ -7239,14 +7564,39 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
+var $author$project$Vocabulary$Slug$buildSlug = function (str) {
+	return $author$project$Vocabulary$Slug$Slug(str);
+};
+var $author$project$Vocabulary$Id$toString = function (_v0) {
+	var s = _v0.a;
+	return s;
+};
 var $author$project$Route$routeToString = function (route) {
 	var pieces = function () {
-		if (route.$ === 'Home') {
-			return _List_Nil;
-		} else {
-			var string = route.a;
-			return _List_fromArray(
-				['vocabulary', string]);
+		switch (route.$) {
+			case 'Home':
+				return _List_Nil;
+			case 'Vocabulary':
+				var slug = route.a;
+				var id = route.b;
+				var query = function () {
+					if (id.$ === 'Just') {
+						var i = id.a;
+						return '?id=' + $author$project$Vocabulary$Id$toString(i);
+					} else {
+						return '';
+					}
+				}();
+				return _List_fromArray(
+					[
+						'vocabulary',
+						_Utils_ap(
+						$author$project$Vocabulary$Slug$toString(slug),
+						query)
+					]);
+			default:
+				return _List_fromArray(
+					['favorites']);
 		}
 	}();
 	return '/' + A2($elm$core$String$join, '/', pieces);
@@ -7323,7 +7673,10 @@ var $author$project$Header$SearchBox$update = F2(
 					A2(
 						$author$project$Route$pushUrl,
 						$author$project$Session$navKey(model.session),
-						$author$project$Route$Vocabulary(validForm.word)));
+						A2(
+							$author$project$Route$Vocabulary,
+							$author$project$Vocabulary$Slug$buildSlug(validForm.word),
+							$elm$core$Maybe$Nothing)));
 			} else {
 				var problem = _v1.a;
 				return _Utils_Tuple2(
@@ -7334,12 +7687,393 @@ var $author$project$Header$SearchBox$update = F2(
 			}
 		}
 	});
-var $author$project$Page$Vocabulary$Id = function (a) {
-	return {$: 'Id', a: a};
+var $author$project$Viewer$favorites = function (_v0) {
+	var info = _v0.a;
+	return info.favorites;
 };
+var $author$project$Favorites$remove = F2(
+	function (favored, _v0) {
+		var listFav = _v0.a;
+		return $author$project$Favorites$Favorites(
+			A2(
+				$elm$core$List$filter,
+				function (s) {
+					return !_Utils_eq(s.headword, favored.headword);
+				},
+				listFav));
+	});
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Vocabulary$Slug$encode = function (slug) {
+	return $elm$json$Json$Encode$string(
+		$author$project$Vocabulary$Slug$toString(slug));
+};
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $author$project$Favorites$encode = function (_v0) {
+	var listFav = _v0.a;
+	var favoredObj = function (f) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'slug',
+					$author$project$Vocabulary$Slug$encode(f.slug)),
+					_Utils_Tuple2(
+					'id',
+					$elm$json$Json$Encode$string(
+						$author$project$Vocabulary$Id$toString(f.id))),
+					_Utils_Tuple2(
+					'headword',
+					$elm$json$Json$Encode$string(f.headword)),
+					_Utils_Tuple2(
+					'shortDefine',
+					A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.shortDefine))
+				]));
+	};
+	return A2($elm$json$Json$Encode$list, favoredObj, listFav);
+};
+var $author$project$Recent$encode = function (_v0) {
+	var info = _v0.a;
+	var config = function (f) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'slug',
+					$author$project$Vocabulary$Slug$encode(f.slug)),
+					_Utils_Tuple2(
+					'id',
+					$elm$json$Json$Encode$string(
+						$author$project$Vocabulary$Id$toString(f.id))),
+					_Utils_Tuple2(
+					'headword',
+					$elm$json$Json$Encode$string(f.headword))
+				]));
+	};
+	return A2($elm$json$Json$Encode$list, config, info);
+};
+var $elm$core$Maybe$destruct = F3(
+	function (_default, func, maybe) {
+		if (maybe.$ === 'Just') {
+			var a = maybe.a;
+			return func(a);
+		} else {
+			return _default;
+		}
+	});
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$Api$storeCache = _Platform_outgoingPort(
+	'storeCache',
+	function ($) {
+		return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$core$Basics$identity, $);
+	});
+var $author$project$Api$storeViewerWith = F2(
+	function (favorites, recent) {
+		var json = $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'user',
+					$elm$json$Json$Encode$object(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'favorites',
+								$author$project$Favorites$encode(favorites)),
+								_Utils_Tuple2(
+								'recent',
+								$author$project$Recent$encode(recent))
+							])))
+				]));
+		return $author$project$Api$storeCache(
+			$elm$core$Maybe$Just(json));
+	});
+var $author$project$Viewer$store = function (_v0) {
+	var info = _v0.a;
+	return A2($author$project$Api$storeViewerWith, info.favorites, info.recent);
+};
+var $author$project$Viewer$updateFavor = F2(
+	function (_v0, newFavor) {
+		var info = _v0.a;
+		return $author$project$Viewer$Viewer(
+			_Utils_update(
+				info,
+				{favorites: newFavor}));
+	});
+var $author$project$Viewer$unfavorite = F2(
+	function (viewer, fav) {
+		var oldFavor = $author$project$Viewer$favorites(viewer);
+		return $author$project$Viewer$store(
+			A2(
+				$author$project$Viewer$updateFavor,
+				viewer,
+				A2($author$project$Favorites$remove, fav, oldFavor)));
+	});
+var $author$project$Page$Favorites$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'GotSession':
+				var session = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{session: session}),
+					$elm$core$Platform$Cmd$none);
+			case 'ClickedPage':
+				var pageNum = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{viewingPage: pageNum}),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var viewer = msg.a;
+				var favored = msg.b;
+				return _Utils_Tuple2(
+					model,
+					A2($author$project$Viewer$unfavorite, viewer, favored));
+		}
+	});
+var $author$project$Viewer$recent = function (_v0) {
+	var info = _v0.a;
+	return info.recent;
+};
+var $author$project$Vocabulary$Id$isEq = F2(
+	function (id1, id2) {
+		return _Utils_eq(
+			$author$project$Vocabulary$Id$toString(id1),
+			$author$project$Vocabulary$Id$toString(id2));
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Recent$remove = F2(
+	function (_v0, id) {
+		var info = _v0.a;
+		return $author$project$Recent$Recent(
+			A2(
+				$elm$core$List$filter,
+				function (l) {
+					return !A2($author$project$Vocabulary$Id$isEq, id, l.id);
+				},
+				info));
+	});
+var $author$project$Viewer$updateRecent = F2(
+	function (_v0, newRecent) {
+		var info = _v0.a;
+		return $author$project$Viewer$Viewer(
+			_Utils_update(
+				info,
+				{recent: newRecent}));
+	});
+var $author$project$Session$viewer = function (_v0) {
+	var view = _v0.b;
+	return view;
+};
+var $author$project$Page$Home$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'ClickedEditing':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{isEditingRecent: true}),
+					$elm$core$Platform$Cmd$none);
+			case 'ClickedUnediting':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{isEditingRecent: false}),
+					$elm$core$Platform$Cmd$none);
+			case 'ClickedClearAll':
+				return _Utils_Tuple2(
+					model,
+					$author$project$Viewer$store(
+						A2(
+							$author$project$Viewer$updateRecent,
+							$author$project$Session$viewer(model.session),
+							$author$project$Recent$emptyList)));
+			case 'ClickedRemoveHistroy':
+				var id = msg.a;
+				return _Utils_Tuple2(
+					model,
+					$author$project$Viewer$store(
+						A2(
+							$author$project$Viewer$updateRecent,
+							$author$project$Session$viewer(model.session),
+							A2(
+								$author$project$Recent$remove,
+								$author$project$Viewer$recent(
+									$author$project$Session$viewer(model.session)),
+								id))));
+			default:
+				var session = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{session: session}),
+					$elm$core$Platform$Cmd$none);
+		}
+	});
+var $author$project$Page$Vocabulary$Failed = {$: 'Failed'};
 var $author$project$Page$Vocabulary$Loaded = function (a) {
 	return {$: 'Loaded', a: a};
 };
+var $author$project$Page$Vocabulary$LoadingSlowly = {$: 'LoadingSlowly'};
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
+var $author$project$Recent$add = F2(
+	function (recent, word) {
+		var refreshRecent = A2($author$project$Recent$remove, recent, word.id);
+		var rec = refreshRecent.a;
+		return $author$project$Recent$Recent(
+			A2(
+				$elm$core$List$take,
+				24,
+				A2($elm$core$List$cons, word, rec)));
+	});
 var $elm$core$Basics$composeL = F3(
 	function (g, f, x) {
 		return g(
@@ -7366,10 +8100,29 @@ var $author$project$Api$decodeErrors = function (error) {
 	return _List_fromArray(
 		[message]);
 };
-var $author$project$Vocabulary$entries = function (_v0) {
-	var inter = _v0.a;
-	return inter.entries;
+var $author$project$Vocabulary$entries = function (voc) {
+	if (voc.$ === 'Vocabulary') {
+		var inter = voc.a;
+		return inter.entries;
+	} else {
+		return _List_Nil;
+	}
 };
+var $author$project$Favorites$add = F2(
+	function (favored, _v0) {
+		var listFav = _v0.a;
+		return $author$project$Favorites$Favorites(
+			A2($elm$core$List$cons, favored, listFav));
+	});
+var $author$project$Viewer$favorite = F2(
+	function (viewer, fav) {
+		var oldFavor = $author$project$Viewer$favorites(viewer);
+		return $author$project$Viewer$store(
+			A2(
+				$author$project$Viewer$updateFavor,
+				viewer,
+				A2($author$project$Favorites$add, fav, oldFavor)));
+	});
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -7379,16 +8132,13 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
+var $author$project$Api$soundCmdToJs = _Platform_outgoingPort('soundCmdToJs', $elm$json$Json$Encode$string);
+var $author$project$Vocabulary$toFavored = function (wor) {
+	return A4($author$project$Favorites$Favored, wor.slug, wor.id, wor.headword, wor.shortDefine);
+};
+var $author$project$Vocabulary$toLastWord = function (wor) {
+	return A3($author$project$Recent$LastWord, wor.slug, wor.id, wor.headword);
+};
 var $author$project$Page$Vocabulary$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -7398,10 +8148,31 @@ var $author$project$Page$Vocabulary$update = F2(
 					_Utils_update(
 						model,
 						{
-							selectedEntry: $elm$core$Maybe$Just(
-								$author$project$Page$Vocabulary$Id(id))
+							selectedEntry: $elm$core$Maybe$Just(id)
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'ClickedAudio':
+				return _Utils_Tuple2(
+					model,
+					$author$project$Api$soundCmdToJs('play'));
+			case 'ClickedFavorite':
+				var viewer = msg.a;
+				var word = msg.b;
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$author$project$Viewer$favorite,
+						viewer,
+						$author$project$Vocabulary$toFavored(word)));
+			case 'ClickedUnfavorite':
+				var viewer = msg.a;
+				var word = msg.b;
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$author$project$Viewer$unfavorite,
+						viewer,
+						$author$project$Vocabulary$toFavored(word)));
 			case 'CompetedVocabularyLoad':
 				if (msg.a.$ === 'Ok') {
 					var vocabulary = msg.a.a;
@@ -7409,20 +8180,47 @@ var $author$project$Page$Vocabulary$update = F2(
 						_Utils_update(
 							model,
 							{
-								selectedEntry: A2(
-									$elm$core$Basics$composeL,
-									A2(
-										$elm$core$Basics$composeL,
-										$elm$core$Maybe$map($author$project$Page$Vocabulary$Id),
-										$elm$core$List$head),
-									$elm$core$List$map(
-										function (w) {
-											return w.id;
-										}))(
-									$author$project$Vocabulary$entries(vocabulary)),
+								selectedEntry: function () {
+									var _v1 = model.selectedEntry;
+									if (_v1.$ === 'Nothing') {
+										return A2(
+											$elm$core$Basics$composeL,
+											$elm$core$List$head,
+											$elm$core$List$map(
+												function (w) {
+													return w.id;
+												}))(
+											$author$project$Vocabulary$entries(vocabulary));
+									} else {
+										var id = _v1;
+										return id;
+									}
+								}(),
 								vocabulary: $author$project$Page$Vocabulary$Loaded(vocabulary)
 							}),
-						$elm$core$Platform$Cmd$none);
+						function () {
+							if (vocabulary.$ === 'Vocabulary') {
+								var info = vocabulary.a;
+								var viewer = $author$project$Session$viewer(model.session);
+								var _v3 = $elm$core$List$head(info.entries);
+								if (_v3.$ === 'Just') {
+									var word = _v3.a;
+									var e = A2($elm$core$Debug$log, 'voc', word);
+									return $author$project$Viewer$store(
+										A2(
+											$author$project$Viewer$updateRecent,
+											viewer,
+											A2(
+												$author$project$Recent$add,
+												$author$project$Viewer$recent(viewer),
+												$author$project$Vocabulary$toLastWord(word))));
+								} else {
+									return $elm$core$Platform$Cmd$none;
+								}
+							} else {
+								return $elm$core$Platform$Cmd$none;
+							}
+						}());
 				} else {
 					var errors = msg.a.a;
 					var e = A2($elm$core$Debug$log, 'error', errors);
@@ -7430,76 +8228,128 @@ var $author$project$Page$Vocabulary$update = F2(
 						_Utils_update(
 							model,
 							{
-								errors: $author$project$Api$decodeErrors(errors)
+								errors: $author$project$Api$decodeErrors(errors),
+								vocabulary: $author$project$Page$Vocabulary$Failed
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
+			case 'PassedSlowLoadThreshold':
+				var voc = function () {
+					var _v4 = model.vocabulary;
+					if (_v4.$ === 'Loading') {
+						return $author$project$Page$Vocabulary$LoadingSlowly;
+					} else {
+						var other = _v4;
+						return other;
+					}
+				}();
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{vocabulary: voc}),
+					$elm$core$Platform$Cmd$none);
 			default:
 				var session = msg.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{session: session}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model.page);
-		switch (_v0.a.$) {
-			case 'Ignored':
-				var _v1 = _v0.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-			case 'GotSearchBoxMsg':
-				var subMsg = _v0.a.a;
-				var anyPage = _v0.b;
-				var _v2 = A2($author$project$Header$SearchBox$update, subMsg, model.searchBox);
-				var newModel = _v2.a;
-				var newMsg = _v2.b;
-				var a = A2($elm$core$Debug$log, 'input', newModel);
-				return _Utils_Tuple2(
-					{page: anyPage, searchBox: newModel},
-					A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSearchBoxMsg, newMsg));
-			case 'GotVocabularyMsg':
-				if (_v0.b.$ === 'Vocabulary') {
-					var subMsg = _v0.a.a;
-					var vocabulary = _v0.b.a;
-					return A4(
-						$author$project$Main$updateWithPage,
-						$author$project$Main$Vocabulary,
-						$author$project$Main$GotVocabularyMsg,
-						model,
-						A2($author$project$Page$Vocabulary$update, subMsg, vocabulary));
-				} else {
+		_v0$7:
+		while (true) {
+			switch (_v0.a.$) {
+				case 'Ignored':
+					var _v1 = _v0.a;
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'ChangedUrl':
-				var url = _v0.a.a;
-				return A2(
-					$author$project$Main$changeRouteTo,
-					$author$project$Route$fromUrl(url),
-					model.page);
-			default:
-				var urlRequest = _v0.a.a;
-				if (urlRequest.$ === 'Internal') {
-					var url = urlRequest.a;
-					var a = A2($elm$core$Debug$log, 'url', url);
-					var _v4 = url.fragment;
-					if (_v4.$ === 'Nothing') {
+				case 'GotSearchBoxMsg':
+					var subMsg = _v0.a.a;
+					var anyPage = _v0.b;
+					var _v2 = A2($author$project$Header$SearchBox$update, subMsg, model.searchBox);
+					var newModel = _v2.a;
+					var newMsg = _v2.b;
+					var a = A2($elm$core$Debug$log, 'input', newModel);
+					return _Utils_Tuple2(
+						{page: anyPage, searchBox: newModel},
+						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSearchBoxMsg, newMsg));
+				case 'GotVocabularyMsg':
+					if (_v0.b.$ === 'Vocabulary') {
+						var subMsg = _v0.a.a;
+						var vocabulary = _v0.b.a;
+						return A4(
+							$author$project$Main$updateWithPage,
+							$author$project$Main$Vocabulary,
+							$author$project$Main$GotVocabularyMsg,
+							model,
+							A2($author$project$Page$Vocabulary$update, subMsg, vocabulary));
+					} else {
+						break _v0$7;
+					}
+				case 'GotFavoritesMsg':
+					if (_v0.b.$ === 'Favorites') {
+						var subMsg = _v0.a.a;
+						var favorites = _v0.b.a;
+						return A4(
+							$author$project$Main$updateWithPage,
+							$author$project$Main$Favorites,
+							$author$project$Main$GotFavoritesMsg,
+							model,
+							A2($author$project$Page$Favorites$update, subMsg, favorites));
+					} else {
+						break _v0$7;
+					}
+				case 'GotHomeMsg':
+					if (_v0.b.$ === 'Home') {
+						var subMsg = _v0.a.a;
+						var home = _v0.b.a;
+						return A4(
+							$author$project$Main$updateWithPage,
+							$author$project$Main$Home,
+							$author$project$Main$GotHomeMsg,
+							model,
+							A2($author$project$Page$Home$update, subMsg, home));
+					} else {
+						break _v0$7;
+					}
+				case 'ChangedUrl':
+					var url = _v0.a.a;
+					return A2(
+						$author$project$Main$changeRouteTo,
+						$author$project$Route$fromUrl(url),
+						model.page);
+				default:
+					var urlRequest = _v0.a.a;
+					if (urlRequest.$ === 'Internal') {
+						var url = urlRequest.a;
+						var a = A2($elm$core$Debug$log, 'url', url);
+						var _v4 = url.fragment;
+						if (_v4.$ === 'Nothing') {
+							return _Utils_Tuple2(
+								model,
+								A2(
+									$elm$browser$Browser$Navigation$pushUrl,
+									$author$project$Session$navKey(
+										$author$project$Main$toSession(model.page)),
+									$elm$url$Url$toString(url)));
+						} else {
+							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+						}
+					} else {
+						var href = urlRequest.a;
 						return _Utils_Tuple2(
 							model,
-							A2(
-								$elm$browser$Browser$Navigation$pushUrl,
-								$author$project$Session$navKey(
-									$author$project$Main$toSession(model.page)),
-								$elm$url$Url$toString(url)));
-					} else {
-						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+							$elm$browser$Browser$Navigation$load(href));
 					}
-				} else {
-					var href = urlRequest.a;
-					return _Utils_Tuple2(
-						model,
-						$elm$browser$Browser$Navigation$load(href));
-				}
+			}
 		}
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
+var $author$project$Page$Favorites = {$: 'Favorites'};
+var $author$project$Page$Home = {$: 'Home'};
 var $author$project$Page$Other = {$: 'Other'};
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -7543,7 +8393,6 @@ var $elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
-var $elm$core$Basics$not = _Basics_not;
 var $elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
@@ -7670,10 +8519,178 @@ var $author$project$Header$SearchBox$view = function (model) {
 					]))
 			]));
 };
-var $author$project$Page$Vocabulary$ClickedEntry = function (a) {
-	return {$: 'ClickedEntry', a: a};
+var $author$project$PaginatedList$PaginatedList = function (a) {
+	return {$: 'PaginatedList', a: a};
+};
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $author$project$PaginatedList$fromList = F4(
+	function (totalPage, page, itemPerPage, fav) {
+		var val = A2(
+			$elm$core$List$drop,
+			(page - 1) * itemPerPage,
+			A2($elm$core$List$take, page * itemPerPage, fav));
+		return $author$project$PaginatedList$PaginatedList(
+			{page: page, totalPage: totalPage, values: val});
+	});
+var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $author$project$Favorites$length = function (_v0) {
+	var info = _v0.a;
+	return $elm$core$List$length(info);
+};
+var $author$project$Favorites$toList = function (_v0) {
+	var info = _v0.a;
+	return info;
+};
+var $author$project$PaginatedList$values = function (_v0) {
+	var info = _v0.a;
+	return info.values;
+};
+var $author$project$Page$Favorites$ClickedUnfavorite = F2(
+	function (a, b) {
+		return {$: 'ClickedUnfavorite', a: a, b: b};
+	});
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$figcaption = _VirtualDom_node('figcaption');
+var $elm$html$Html$figure = _VirtualDom_node('figure');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $author$project$Route$href = function (route) {
+	return $elm$html$Html$Attributes$href(
+		$author$project$Route$routeToString(route));
 };
 var $elm$html$Html$li = _VirtualDom_node('li');
+var $author$project$Page$Favorites$onCLickStopPropagation = function (msg) {
+	return A2(
+		$elm$html$Html$Events$stopPropagationOn,
+		'click',
+		$elm$json$Json$Decode$succeed(
+			_Utils_Tuple2(msg, true)));
+};
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $elm$html$Html$ul = _VirtualDom_node('ul');
+var $author$project$Page$Favorites$viewFavored = F2(
+	function (viewer, favored) {
+		var defines = function (meaning) {
+			return A2(
+				$elm$html$Html$li,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('favored__mean')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(meaning)
+					]));
+		};
+		return A2(
+			$elm$html$Html$figure,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('favored')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('favored__remove'),
+							$author$project$Page$Favorites$onCLickStopPropagation(
+							A2($author$project$Page$Favorites$ClickedUnfavorite, viewer, favored)),
+							$elm$html$Html$Attributes$type_('button')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$svg,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$class('favored__remove-icon')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$svg$Svg$use,
+									_List_fromArray(
+										[
+											$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-close')
+										]),
+									_List_Nil)
+								]))
+						])),
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$author$project$Route$href(
+							A2(
+								$author$project$Route$Vocabulary,
+								favored.slug,
+								$elm$core$Maybe$Just(favored.id))),
+							$elm$html$Html$Attributes$class('favored__link')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$figcaption,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('favored__header')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('favored__headword heading-3')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(favored.headword)
+										]))
+								])),
+							A2(
+							$elm$html$Html$ul,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('favored__defines')
+								]),
+							A2(
+								$elm$core$List$map,
+								defines,
+								A2($elm$core$List$take, 2, favored.shortDefine)))
+						]))
+				]));
+	});
+var $author$project$Page$Favorites$ClickedPage = function (a) {
+	return {$: 'ClickedPage', a: a};
+};
+var $elm$html$Html$nav = _VirtualDom_node('nav');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -7689,6 +8706,411 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		$elm$html$Html$Events$on,
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
+};
+var $author$project$PaginatedList$pageLink = F3(
+	function (toMsg, targetNum, isActie) {
+		return A2(
+			$elm$html$Html$li,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$classList(
+					_List_fromArray(
+						[
+							_Utils_Tuple2('pagination__item', true),
+							_Utils_Tuple2('pagination__item-active', isActie)
+						]))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('pagination__link'),
+							$elm$html$Html$Attributes$href(''),
+							$elm$html$Html$Events$onClick(
+							toMsg(targetNum))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							$elm$core$String$fromInt(targetNum))
+						]))
+				]));
+	});
+var $author$project$PaginatedList$view = F2(
+	function (toMsg, _v0) {
+		var info = _v0.a;
+		var viewPageLink = function (pageNum) {
+			return A3(
+				$author$project$PaginatedList$pageLink,
+				toMsg,
+				pageNum,
+				_Utils_eq(pageNum, info.page));
+		};
+		return (info.totalPage > 1) ? A2(
+			$elm$html$Html$nav,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('pagination')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$ul,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('pagination__list')
+						]),
+					A2(
+						$elm$core$List$map,
+						viewPageLink,
+						A2($elm$core$List$range, 1, info.totalPage)))
+				])) : $elm$html$Html$text('');
+	});
+var $author$project$Page$Favorites$viewPagination = function (paginatedList) {
+	return A2($author$project$PaginatedList$view, $author$project$Page$Favorites$ClickedPage, paginatedList);
+};
+var $author$project$Page$Favorites$view = function (model) {
+	return {
+		content: function () {
+			var viewer = $author$project$Session$viewer(model.session);
+			var favorites = $author$project$Viewer$favorites(viewer);
+			var totalPage = $elm$core$Basics$ceiling(
+				A3(
+					$elm$core$List$foldr,
+					$elm$core$Basics$fdiv,
+					1,
+					A2(
+						$elm$core$List$map,
+						$elm$core$Basics$toFloat,
+						_List_fromArray(
+							[
+								$author$project$Favorites$length(favorites),
+								model.itemPerPage
+							]))));
+			var paginatedList = A4(
+				$author$project$PaginatedList$fromList,
+				totalPage,
+				model.viewingPage,
+				model.itemPerPage,
+				$author$project$Favorites$toList(favorites));
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('content')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('favorites')
+							]),
+						$elm$core$List$concat(
+							_List_fromArray(
+								[
+									_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$h3,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('favorites__title heading-2')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('favorites')
+											]))
+									]),
+									A2(
+									$elm$core$List$map,
+									$author$project$Page$Favorites$viewFavored(viewer),
+									$author$project$PaginatedList$values(paginatedList)),
+									_List_fromArray(
+									[
+										$author$project$Page$Favorites$viewPagination(paginatedList)
+									])
+								])))
+					]));
+		}(),
+		title: 'favorites'
+	};
+};
+var $author$project$Page$Home$ClickedClearAll = {$: 'ClickedClearAll'};
+var $author$project$Page$Home$ClickedEditing = {$: 'ClickedEditing'};
+var $author$project$Page$Home$ClickedUnediting = {$: 'ClickedUnediting'};
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$html$Html$header = _VirtualDom_node('header');
+var $elm$html$Html$section = _VirtualDom_node('section');
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Page$Home$viewFavorites = function (favorites) {
+	var viewLink = function (favored) {
+		return A2(
+			$elm$html$Html$li,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('showcase__item')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$author$project$Route$href(
+							A2(
+								$author$project$Route$Vocabulary,
+								favored.slug,
+								$elm$core$Maybe$Just(favored.id))),
+							$elm$html$Html$Attributes$class('showcase__link')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(favored.headword)
+						]))
+				]));
+	};
+	var favoredList = $author$project$Favorites$toList(favorites);
+	return $elm$core$List$isEmpty(favoredList) ? A2(
+		$elm$html$Html$p,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text('No favorited words')
+			])) : A2(
+		$elm$html$Html$ul,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('showcase__list showcase__list-favorites')
+			]),
+		A2($elm$core$List$map, viewLink, favoredList));
+};
+var $author$project$Page$Home$ClickedRemoveHistroy = function (a) {
+	return {$: 'ClickedRemoveHistroy', a: a};
+};
+var $author$project$Recent$toList = function (_v0) {
+	var info = _v0.a;
+	return info;
+};
+var $author$project$Page$Home$viewRecent = F2(
+	function (recent, isEditingRecent) {
+		var viewLink = function (histroy) {
+			return A2(
+				$elm$html$Html$li,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('showcase__item')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$a,
+						_List_fromArray(
+							[
+								$author$project$Route$href(
+								A2($author$project$Route$Vocabulary, histroy.slug, $elm$core$Maybe$Nothing)),
+								$elm$html$Html$Attributes$class('showcase__link')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(histroy.headword)
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('showcase__remove'),
+								$elm$html$Html$Events$onClick(
+								$author$project$Page$Home$ClickedRemoveHistroy(histroy.id))
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$svg$Svg$svg,
+								_List_fromArray(
+									[
+										$elm$svg$Svg$Attributes$class('showcase__remove-icon')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$svg$Svg$use,
+										_List_fromArray(
+											[
+												$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-close')
+											]),
+										_List_Nil)
+									]))
+							]))
+					]));
+		};
+		var histroylist = $author$project$Recent$toList(recent);
+		return $elm$core$List$isEmpty(histroylist) ? A2(
+			$elm$html$Html$p,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('No recent search history')
+				])) : A2(
+			$elm$html$Html$ul,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$classList(
+					_List_fromArray(
+						[
+							_Utils_Tuple2('showcase__list', true),
+							_Utils_Tuple2('showcase__list-edit', isEditingRecent)
+						]))
+				]),
+			A2($elm$core$List$map, viewLink, histroylist));
+	});
+var $author$project$Page$Home$view = function (model) {
+	return {
+		content: A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('content')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$section,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('showcase mb-md')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$header,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('showcase__header')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$h2,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('showcase__title heading-3')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('recent')
+										])),
+									A2(
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('btn-ranges')
+										]),
+									model.isEditingRecent ? _List_fromArray(
+										[
+											A2(
+											$elm$html$Html$button,
+											_List_fromArray(
+												[
+													$elm$html$Html$Attributes$class('btn-ranges__btn showcase__btn-clear'),
+													$elm$html$Html$Events$onClick($author$project$Page$Home$ClickedClearAll)
+												]),
+											_List_fromArray(
+												[
+													$elm$html$Html$text('Clear all')
+												])),
+											A2(
+											$elm$html$Html$button,
+											_List_fromArray(
+												[
+													$elm$html$Html$Attributes$class('btn-ranges__btn showcase__btn-edit'),
+													$elm$html$Html$Events$onClick($author$project$Page$Home$ClickedUnediting)
+												]),
+											_List_fromArray(
+												[
+													$elm$html$Html$text('Done')
+												]))
+										]) : _List_fromArray(
+										[
+											A2(
+											$elm$html$Html$button,
+											_List_fromArray(
+												[
+													$elm$html$Html$Attributes$class('btn-ranges__btn showcase__btn-clear'),
+													$elm$html$Html$Events$onClick($author$project$Page$Home$ClickedEditing)
+												]),
+											_List_fromArray(
+												[
+													$elm$html$Html$text('Edit')
+												]))
+										]))
+								])),
+							A2(
+							$author$project$Page$Home$viewRecent,
+							$author$project$Viewer$recent(
+								$author$project$Session$viewer(model.session)),
+							model.isEditingRecent)
+						])),
+					A2(
+					$elm$html$Html$section,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('showcase')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$header,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('showcase__header')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$h3,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('showcase__title heading-3')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('favorites')
+										])),
+									A2(
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('btn-ranges')
+										]),
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$a,
+											_List_fromArray(
+												[
+													$author$project$Route$href($author$project$Route$Favorites),
+													$elm$html$Html$Attributes$class('btn-ranges__btn showcase__link')
+												]),
+											_List_fromArray(
+												[
+													$elm$html$Html$text('more')
+												]))
+										]))
+								])),
+							$author$project$Page$Home$viewFavorites(
+							$author$project$Viewer$favorites(
+								$author$project$Session$viewer(model.session)))
+						]))
+				])),
+		title: 'home'
+	};
+};
+var $author$project$Page$Vocabulary$ClickedEntry = function (a) {
+	return {$: 'ClickedEntry', a: a};
 };
 var $author$project$Page$Vocabulary$entryBtn = F3(
 	function (attr, msg, btnContent) {
@@ -7711,20 +9133,8 @@ var $author$project$Page$Vocabulary$entryBtn = F3(
 						[btnContent]))
 				]));
 	});
-var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $author$project$Vocabulary$headword = function (w) {
 	return w.headword;
-};
-var $elm$html$Html$a = _VirtualDom_node('a');
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $author$project$Route$href = function (route) {
-	return $elm$html$Html$Attributes$href(
-		$author$project$Route$routeToString(route));
 };
 var $author$project$Page$Vocabulary$relatedLink = F2(
 	function (route, linkContent) {
@@ -7747,11 +9157,14 @@ var $author$project$Page$Vocabulary$relatedLink = F2(
 						[linkContent]))
 				]));
 	});
-var $author$project$Vocabulary$relatedWord = function (_v0) {
-	var inter = _v0.a;
-	return inter.related;
+var $author$project$Vocabulary$relatedWord = function (voc) {
+	if (voc.$ === 'Vocabulary') {
+		var inter = voc.a;
+		return inter.related;
+	} else {
+		return _List_Nil;
+	}
 };
-var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $author$project$Page$Vocabulary$sideNav = F2(
 	function (vocabulary, selectedEntry) {
 		switch (vocabulary.$) {
@@ -7759,21 +9172,27 @@ var $author$project$Page$Vocabulary$sideNav = F2(
 				var voc = vocabulary.a;
 				var toRelatedLink = function (word) {
 					var headword = $author$project$Vocabulary$headword(word);
+					var functionalLabel = A3(
+						$elm$core$Basics$composeL,
+						$elm$core$Maybe$withDefault(''),
+						$elm$core$Maybe$map(
+							function (fl) {
+								return '  (' + (fl + ')');
+							}),
+						word.functionalLabel);
 					return A2(
 						$author$project$Page$Vocabulary$relatedLink,
-						$author$project$Route$Vocabulary(headword),
-						$elm$html$Html$text(headword));
+						A2($author$project$Route$Vocabulary, word.slug, $elm$core$Maybe$Nothing),
+						$elm$html$Html$text(
+							_Utils_ap(headword, functionalLabel)));
 				};
 				var toEntryBtn = function (word) {
-					var id = A2(
+					var isSelected = A2(
 						$elm$core$Maybe$withDefault,
-						'',
+						false,
 						A2(
 							$elm$core$Maybe$map,
-							function (_v1) {
-								var i = _v1.a;
-								return i;
-							},
+							$author$project$Vocabulary$Id$isEq(word.id),
 							selectedEntry));
 					var headword = $author$project$Vocabulary$headword(word);
 					var functionalLabel = A3(
@@ -7790,9 +9209,7 @@ var $author$project$Page$Vocabulary$sideNav = F2(
 							_List_fromArray(
 								[
 									_Utils_Tuple2('entries__btn', true),
-									_Utils_Tuple2(
-									'entries__btn--selected',
-									_Utils_eq(id, word.id))
+									_Utils_Tuple2('entries__btn--selected', isSelected)
 								])),
 						$author$project$Page$Vocabulary$ClickedEntry(word.id),
 						$elm$html$Html$text(
@@ -7871,10 +9288,123 @@ var $author$project$Page$Vocabulary$sideNav = F2(
 					$elm$html$Html$text(''));
 		}
 	});
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $elm$html$Html$figcaption = _VirtualDom_node('figcaption');
-var $elm$html$Html$figure = _VirtualDom_node('figure');
-var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Page$Vocabulary$ClickedAudio = {$: 'ClickedAudio'};
+var $elm$html$Html$audio = _VirtualDom_node('audio');
+var $elm$regex$Regex$contains = _Regex_contains;
+var $elm$regex$Regex$never = _Regex_never;
+var $author$project$Api$audioUrl = function (filename) {
+	var subffix = '.mp3';
+	var numberOrPunctuation = A2(
+		$elm$core$Maybe$withDefault,
+		$elm$regex$Regex$never,
+		$elm$regex$Regex$fromString('[\\d!@#$%\\^&\\*\\(\\)_\\+\\{\\}:\"\\|<>\\?\\/\\.,;\'\\]\\[]'));
+	var subdirectory = A2($elm$core$String$startsWith, 'bix', filename) ? 'bix' : (A2($elm$core$String$startsWith, 'gg', filename) ? 'gg' : (A2(
+		$elm$regex$Regex$contains,
+		numberOrPunctuation,
+		A3($elm$core$String$slice, 0, 1, filename)) ? 'number' : A3($elm$core$String$slice, 0, 1, filename)));
+	var base = ' https://media.merriam-webster.com/audio/prons/en/us/mp3/';
+	return base + (subdirectory + ('/' + (filename + subffix)));
+};
+var $author$project$Page$Vocabulary$ClickedFavorite = F2(
+	function (a, b) {
+		return {$: 'ClickedFavorite', a: a, b: b};
+	});
+var $author$project$Page$Vocabulary$ClickedUnfavorite = F2(
+	function (a, b) {
+		return {$: 'ClickedUnfavorite', a: a, b: b};
+	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $author$project$Favorites$isFavorited = F2(
+	function (headword, _v0) {
+		var listFav = _v0.a;
+		return A2(
+			$elm$core$List$any,
+			function (f) {
+				return _Utils_eq(f.headword, headword);
+			},
+			listFav);
+	});
+var $author$project$Page$Vocabulary$favoriteButton = F2(
+	function (viewer, word) {
+		var favorited = A2(
+			$author$project$Favorites$isFavorited,
+			word.headword,
+			$author$project$Viewer$favorites(viewer));
+		return favorited ? A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('vocabulary__save'),
+					$elm$html$Html$Events$onClick(
+					A2($author$project$Page$Vocabulary$ClickedUnfavorite, viewer, word))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$svg$Svg$svg,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$class('vocabulary__save-icon')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$use,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-star-full')
+								]),
+							_List_Nil)
+						]))
+				])) : A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('vocabulary__save'),
+					$elm$html$Html$Events$onClick(
+					A2($author$project$Page$Vocabulary$ClickedFavorite, viewer, word))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$svg$Svg$svg,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$class('vocabulary__save-icon')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$use,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-star')
+								]),
+							_List_Nil)
+						]))
+				]));
+	});
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $hecrj$html_parser$Html$Parser$Element = F3(
 	function (a, b, c) {
 		return {$: 'Element', a: a, b: b, c: c};
@@ -8269,27 +9799,6 @@ var $hecrj$html_parser$Html$Parser$comment = A2(
 		$elm$parser$Parser$getChompedString(
 			$elm$parser$Parser$chompUntil('-->')),
 		$elm$parser$Parser$token('-->')));
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
 var $elm$core$List$member = F2(
 	function (x, xs) {
 		return A2(
@@ -11474,7 +12983,7 @@ var $author$project$Page$Vocabulary$tokenParser = function (sentence) {
 							$elm$core$Basics$composeR,
 							$elm$core$Maybe$map(
 								function (s) {
-									return '<a style=\'font-weight: bold; color: #bbb\' href=\'' + (s + ('\'> : ' + (s + '</a>')));
+									return '<a style=\'font-weight: bold; color: #bbb\' href=\'' + (s + ('\'>  ' + (s + '</a>')));
 								}),
 							$elm$core$Maybe$withDefault('')),
 						match.submatches)) : '+++++');
@@ -11513,7 +13022,6 @@ var $author$project$Page$Vocabulary$sentencesView = function (sentences) {
 			},
 			sentences));
 };
-var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Page$Vocabulary$senseView = function (sense) {
 	var explanView = function (explan) {
 		switch (explan.$) {
@@ -11607,25 +13115,174 @@ var $author$project$Page$Vocabulary$senseView = function (sense) {
 			A2($elm$core$List$map, explanView, explans));
 	}
 };
-var $author$project$Page$Vocabulary$vocabularyView = F2(
-	function (selectedEntry, vocabulary) {
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $author$project$Page$Vocabulary$vocabularyView = F3(
+	function (selectedEntry, vocabulary, viewer) {
 		switch (vocabulary.$) {
 			case 'Loaded':
 				var voc = vocabulary.a;
 				var words = function () {
 					if (selectedEntry.$ === 'Just') {
-						var id = selectedEntry.a.a;
+						var id = selectedEntry.a;
 						return A2(
 							$elm$core$List$filter,
 							function (w) {
-								return _Utils_eq(w.id, id);
+								return A2($author$project$Vocabulary$Id$isEq, w.id, id);
 							},
 							$author$project$Vocabulary$entries(voc));
 					} else {
 						return _List_Nil;
 					}
 				}();
-				var defineView = function (define) {
+				var shortDefineView = function (shortDefine) {
+					return A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('vocabulary__brief')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$ul,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('vocabulary__brief-list')
+									]),
+								A2(
+									$elm$core$List$map,
+									function (str) {
+										return A2(
+											$elm$html$Html$li,
+											_List_fromArray(
+												[
+													$elm$html$Html$Attributes$class('vocabulary__brief-item')
+												]),
+											_List_fromArray(
+												[
+													$elm$html$Html$text(str)
+												]));
+									},
+									shortDefine))
+							]));
+				};
+				var headerView = function (word) {
+					return A2(
+						$elm$html$Html$header,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('vocabulary__header  mb-sm')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h2,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('vocabulary__headword heading-1')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(word.headword)
+									])),
+								function () {
+								var _v3 = word.functionalLabel;
+								if (_v3.$ === 'Just') {
+									var label = _v3.a;
+									return A2(
+										$elm$html$Html$span,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('vocabulary__functional-label')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(label)
+											]));
+								} else {
+									return $elm$html$Html$text('');
+								}
+							}(),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('vocabulary__pronunciation')
+									]),
+								_List_fromArray(
+									[
+										function () {
+										var _v4 = word.ipa;
+										if (_v4.$ === 'Just') {
+											var ipa = _v4.a;
+											return A2(
+												$elm$html$Html$span,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('vocabulary__ipa')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(ipa)
+													]));
+										} else {
+											return $elm$html$Html$text('');
+										}
+									}(),
+										function () {
+										var _v5 = word.audio;
+										if (_v5.$ === 'Just') {
+											var filename = _v5.a;
+											return A2(
+												$elm$html$Html$button,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('vocabulary__sound'),
+														$elm$html$Html$Events$onClick($author$project$Page$Vocabulary$ClickedAudio)
+													]),
+												_List_fromArray(
+													[
+														A2(
+														$elm$svg$Svg$svg,
+														_List_fromArray(
+															[
+																$elm$svg$Svg$Attributes$class('vocabulary__sound-icon')
+															]),
+														_List_fromArray(
+															[
+																A2(
+																$elm$svg$Svg$use,
+																_List_fromArray(
+																	[
+																		$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-audio')
+																	]),
+																_List_Nil)
+															])),
+														A2(
+														$elm$html$Html$audio,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('vocabulary__sound-audio'),
+																$elm$html$Html$Attributes$id('audio'),
+																$elm$html$Html$Attributes$src(
+																$author$project$Api$audioUrl(filename))
+															]),
+														_List_Nil)
+													]));
+										} else {
+											return $elm$html$Html$text('');
+										}
+									}()
+									])),
+								A2($author$project$Page$Vocabulary$favoriteButton, viewer, word)
+							]));
+				};
+				var fullDefineView = function (define) {
 					if (define.$ === 'Just') {
 						var listOfDefine = define.a;
 						return A2(
@@ -11647,6 +13304,26 @@ var $author$project$Page$Vocabulary$vocabularyView = F2(
 							]);
 					}
 				};
+				var crossReffencesView = function (crossRef) {
+					if (crossRef.$ === 'Just') {
+						var cr = crossRef.a;
+						return A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('vocabulary__crossRef')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$p,
+									_List_Nil,
+									$author$project$Page$Vocabulary$textHtml(cr))
+								]));
+					} else {
+						return $elm$html$Html$text('');
+					}
+				};
 				var wordView = function (word) {
 					return A2(
 						$elm$html$Html$div,
@@ -11654,20 +13331,23 @@ var $author$project$Page$Vocabulary$vocabularyView = F2(
 							[
 								$elm$html$Html$Attributes$class('vocabulary__container')
 							]),
-						A2(
-							$elm$core$List$cons,
-							A2(
-								$elm$html$Html$h2,
-								_List_fromArray(
+						$elm$core$List$concat(
+							_List_fromArray(
+								[
+									_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class('vocabulary__headword heading-2 mb-sm')
+										headerView(word)
 									]),
-								_List_fromArray(
+									_List_fromArray(
 									[
-										$elm$html$Html$text(
-										$author$project$Vocabulary$headword(word))
-									])),
-							defineView(word.define)));
+										shortDefineView(word.shortDefine)
+									]),
+									fullDefineView(word.define),
+									_List_fromArray(
+									[
+										crossReffencesView(word.crossReffences)
+									])
+								])));
 				};
 				return A2($elm$core$List$map, wordView, words);
 			case 'Loading':
@@ -11737,7 +13417,11 @@ var $author$project$Page$Vocabulary$view = function (model) {
 						[
 							$elm$html$Html$Attributes$class('vocabulary')
 						]),
-					A2($author$project$Page$Vocabulary$vocabularyView, model.selectedEntry, model.vocabulary))
+					A3(
+						$author$project$Page$Vocabulary$vocabularyView,
+						model.selectedEntry,
+						model.vocabulary,
+						$author$project$Session$viewer(model.session)))
 				])),
 		title: title
 	};
@@ -11748,9 +13432,8 @@ var $author$project$Page$viewFooter = A2(
 	_List_Nil,
 	_List_fromArray(
 		[
-			$elm$html$Html$text('footer')
+			$elm$html$Html$text('')
 		]));
-var $elm$html$Html$header = _VirtualDom_node('header');
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $author$project$Asset$Image = function (a) {
 	return {$: 'Image', a: a};
@@ -11759,16 +13442,128 @@ var $author$project$Asset$image = function (file) {
 	return $author$project$Asset$Image('/img/' + file);
 };
 var $author$project$Asset$logo = $author$project$Asset$image('logo.png');
-var $elm$html$Html$nav = _VirtualDom_node('nav');
-var $elm$html$Html$Attributes$src = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'src',
-		_VirtualDom_noJavaScriptOrHtmlUri(url));
-};
 var $author$project$Asset$src = function (_v0) {
 	var url = _v0.a;
 	return $elm$html$Html$Attributes$src(url);
+};
+var $author$project$Page$isActive = F2(
+	function (page, route) {
+		var _v0 = _Utils_Tuple2(page, route);
+		_v0$2:
+		while (true) {
+			switch (_v0.a.$) {
+				case 'Home':
+					if (_v0.b.$ === 'Home') {
+						var _v1 = _v0.a;
+						var _v2 = _v0.b;
+						return true;
+					} else {
+						break _v0$2;
+					}
+				case 'Favorites':
+					if (_v0.b.$ === 'Favorites') {
+						var _v3 = _v0.a;
+						var _v4 = _v0.b;
+						return true;
+					} else {
+						break _v0$2;
+					}
+				default:
+					break _v0$2;
+			}
+		}
+		return false;
+	});
+var $author$project$Page$navbarLink = F3(
+	function (page, route, linkContent) {
+		return A2(
+			$elm$html$Html$li,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$classList(
+					_List_fromArray(
+						[
+							_Utils_Tuple2('nav__item', true),
+							_Utils_Tuple2(
+							'nav__item-active',
+							A2($author$project$Page$isActive, page, route))
+						]))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$author$project$Route$href(route),
+							$elm$html$Html$Attributes$class('nav__link')
+						]),
+					linkContent)
+				]));
+	});
+var $author$project$Page$viewMenu = function (page) {
+	var linkTo = $author$project$Page$navbarLink(page);
+	return _List_fromArray(
+		[
+			A2(
+			linkTo,
+			$author$project$Route$Home,
+			_List_fromArray(
+				[
+					A2(
+					$elm$svg$Svg$svg,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$class('nav__icon')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$use,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-home')
+								]),
+							_List_Nil)
+						])),
+					A2(
+					$elm$html$Html$span,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text('home')
+						]))
+				])),
+			A2(
+			linkTo,
+			$author$project$Route$Favorites,
+			_List_fromArray(
+				[
+					A2(
+					$elm$svg$Svg$svg,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$class('nav__icon')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$use,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-star-full')
+								]),
+							_List_Nil)
+						])),
+					A2(
+					$elm$html$Html$span,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text('favorites')
+						]))
+				]))
+		]);
 };
 var $author$project$Page$viewHeader = F2(
 	function (searchBoxContent, page) {
@@ -11803,93 +13598,7 @@ var $author$project$Page$viewHeader = F2(
 								[
 									$elm$html$Html$Attributes$class('nav__list')
 								]),
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$li,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('nav__item nav__item--active')
-										]),
-									_List_fromArray(
-										[
-											A2(
-											$elm$html$Html$a,
-											_List_fromArray(
-												[
-													$elm$html$Html$Attributes$href(''),
-													$elm$html$Html$Attributes$class('nav__link')
-												]),
-											_List_fromArray(
-												[
-													A2(
-													$elm$svg$Svg$svg,
-													_List_fromArray(
-														[
-															$elm$svg$Svg$Attributes$class('nav__icon')
-														]),
-													_List_fromArray(
-														[
-															A2(
-															$elm$svg$Svg$use,
-															_List_fromArray(
-																[
-																	$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-home')
-																]),
-															_List_Nil)
-														])),
-													A2(
-													$elm$html$Html$span,
-													_List_Nil,
-													_List_fromArray(
-														[
-															$elm$html$Html$text('home')
-														]))
-												]))
-										])),
-									A2(
-									$elm$html$Html$li,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('nav__item')
-										]),
-									_List_fromArray(
-										[
-											A2(
-											$elm$html$Html$a,
-											_List_fromArray(
-												[
-													$elm$html$Html$Attributes$href(''),
-													$elm$html$Html$Attributes$class('nav__link')
-												]),
-											_List_fromArray(
-												[
-													A2(
-													$elm$svg$Svg$svg,
-													_List_fromArray(
-														[
-															$elm$svg$Svg$Attributes$class('nav__icon')
-														]),
-													_List_fromArray(
-														[
-															A2(
-															$elm$svg$Svg$use,
-															_List_fromArray(
-																[
-																	$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-key')
-																]),
-															_List_Nil)
-														])),
-													A2(
-													$elm$html$Html$span,
-													_List_Nil,
-													_List_fromArray(
-														[
-															$elm$html$Html$text('favorites')
-														]))
-												]))
-										]))
-								]))
+							$author$project$Page$viewMenu(page))
 						]))
 				]));
 	});
@@ -11935,21 +13644,36 @@ var $author$project$Main$view = function (model) {
 			};
 		});
 	var _v0 = model.page;
-	if (_v0.$ === 'Vocabulary') {
-		var vocabulary = _v0.a;
-		return A3(
-			margePage,
-			$author$project$Page$Other,
-			$author$project$Page$Vocabulary$view(vocabulary),
-			$author$project$Main$GotVocabularyMsg);
-	} else {
-		return {
-			body: _List_fromArray(
-				[
-					$elm$html$Html$text('red')
-				]),
-			title: 'vocabulary'
-		};
+	switch (_v0.$) {
+		case 'Vocabulary':
+			var vocabulary = _v0.a;
+			return A3(
+				margePage,
+				$author$project$Page$Other,
+				$author$project$Page$Vocabulary$view(vocabulary),
+				$author$project$Main$GotVocabularyMsg);
+		case 'Favorites':
+			var favorites = _v0.a;
+			return A3(
+				margePage,
+				$author$project$Page$Favorites,
+				$author$project$Page$Favorites$view(favorites),
+				$author$project$Main$GotFavoritesMsg);
+		case 'Home':
+			var home = _v0.a;
+			return A3(
+				margePage,
+				$author$project$Page$Home,
+				$author$project$Page$Home$view(home),
+				$author$project$Main$GotHomeMsg);
+		default:
+			return {
+				body: _List_fromArray(
+					[
+						$elm$html$Html$text('red')
+					]),
+				title: 'vocabulary'
+			};
 	}
 };
 var $author$project$Main$main = $elm$browser$Browser$application(

@@ -9,14 +9,17 @@ import Html.Parser
 import Html.Parser.Util
 import Http
 import HttpBuilder exposing (RequestBuilder, withBody, withExpect)
+import Task
 import Route exposing (Route)
 import Session exposing (Session)
 import Svg exposing (svg, use)
 import Svg.Attributes as SvgAttributes
 import Viewer exposing (Viewer)
-import Vocabulary exposing (Explan(..), Sense, Vocabulary, Word, decoder)
+import Vocabulary exposing (Explan(..), Sense, Vocabulary(..), Word, decoder)
 import Vocabulary.Id as Id exposing (Id)
 import Vocabulary.Slug as Slug exposing (Slug)
+import Loading
+import Recent
 
 
 type alias Model =
@@ -43,6 +46,7 @@ init session slug maybeId =
       }
     , Cmd.batch
         [ fetch slug
+        , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
     )
 
@@ -322,11 +326,24 @@ type Msg
     | ClickedFavorite Viewer Word
     | ClickedUnfavorite Viewer Word
     | GotSession Session
+    | PassedSlowLoadThreshold
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+
+        ClickedEntry id ->
+            ( { model | selectedEntry = Just id }, Cmd.none )
+
+        ClickedAudio ->
+            ( model, Api.soundCmdToJs "play" )
+
+        ClickedFavorite viewer word ->
+            ( model, Viewer.favorite viewer (Vocabulary.toFavored word) )
+
+        ClickedUnfavorite viewer word ->
+            ( model, Viewer.unfavorite viewer (Vocabulary.toFavored word) )
         CompetedVocabularyLoad (Ok vocabulary) ->
             ( { model 
               | vocabulary = Loaded vocabulary
@@ -336,31 +353,46 @@ update msg model =
                         (List.head << List.map (\w -> w.id)) (Vocabulary.entries vocabulary) 
                     id ->
                         id
-                
-                        
-                
               }
-            , Cmd.none )
-
-        ClickedEntry id ->
-            ( { model | selectedEntry = Just id }, Cmd.none )
-
-        ClickedAudio ->
-            ( model, Api.soundCmdToJs "play" )
-
-        ClickedFavorite viewer word ->
-            ( model, Vocabulary.favorite viewer (Vocabulary.toFavored word) )
-
-        ClickedUnfavorite viewer word ->
-            ( model, Vocabulary.unfavorite viewer (Vocabulary.toFavored word) )
+            , case vocabulary of
+                Vocabulary info ->
+                    let
+                        viewer = Session.viewer model.session
+                    in
+                    case List.head info.entries of
+                        Just word ->
+                            let
+                                e =
+                                    Debug.log "voc" word
+                            in
+                            Vocabulary.toLastWord word
+                                |> Recent.add (Viewer.recent viewer)
+                                |> Viewer.updateRecent viewer
+                                |> Viewer.store
+                        Nothing ->
+                            Cmd.none                            
+                Suggestion _ ->
+                    Cmd.none
+                    
+             )
 
         CompetedVocabularyLoad (Err errors) ->
             let
                 e =
                     Debug.log "error" errors
             in
-            ( { model | errors = Api.decodeErrors errors }, Cmd.none )
-
+            ( { model | errors = Api.decodeErrors errors, vocabulary = Failed }, Cmd.none )
+        PassedSlowLoadThreshold -> 
+            let
+                voc = 
+                    case model.vocabulary of
+                        Loading ->
+                            LoadingSlowly
+                        other ->
+                            other
+            in
+            ( {model | vocabulary = voc}, Cmd.none)
+            
         GotSession session ->
             ( { model | session = session }, Cmd.none )
 
@@ -442,3 +474,4 @@ tokenParser sentence =
             userReplace "\\{bc\\}|\\{it\\}|\\{\\/it\\}|\\{\\/phrase\\}|\\{phrase\\}|\\{dx\\}|\\{\\/dx\\}|\\{dxt\\|([\\w\\s]*)[\\:\\d]*\\|\\|[\\w\\s\\(\\)]*?\\}|\\{ldquo\\}|\\{rdquo\\}|\\{sx\\|([\\w\\s]*)[\\:\\d]*\\|\\|\\}" replacePattern
     in
     replacer sentence
+

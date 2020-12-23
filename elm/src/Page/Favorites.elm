@@ -88,7 +88,7 @@ update msg model =
         ClickedPage pageNum -> 
             ( { model | viewingPage = pageNum }, Cmd.none)
         ClickedUnfavorite viewer favored ->
-            ( model, Vocabulary.unfavorite viewer favored)
+            ( model, Viewer.unfavorite viewer favored)
   
 subscriptions : Model -> Sub Msg
 subscriptions model =

@@ -1,0 +1,79 @@
+.favorites {
+  width: 100%;
+  padding: 2rem;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(35rem, 1fr));
+  grid-gap: 1.3rem;
+  &__title {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 25rem;
+  }
+}
+
+.favored {
+  background-color: $color-grey-dark-3;
+  &__link {
+    color: currentColor;
+    text-decoration: none;
+    display: grid;
+    padding: 1rem 1rem 2rem 2rem;
+  }
+  &__header {
+
+  }
+  &__headword {
+    font-size: 2.2rem;
+  }
+  &__remove {
+    border: none;
+    color: currentColor;
+    background-color: transparent;
+    cursor: pointer;
+    float: right;
+  }
+  &__remove-icon {
+    width: 3rem;
+    height: 3rem;
+    fill: currentColor;
+    pointer-events: none;
+  }
+  &__defines {
+    padding-left: 2rem;
+  }
+  &__mean {
+    font-size: 1.6rem;
+  }
+}
+
+// pagination
+.pagination {
+  grid-column: 1 / -1;
+  &__list {
+    display: grid;
+    grid-gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, 3.4rem);
+  }
+  &__item {
+    background-color: $color-grey-dark-3;
+    list-style: none;
+    border-radius: 50%;
+    border: 0.2rem solid $color-primary-dark;
+    display: block;
+    &-active {
+      background-color: $color-primary-dark;
+      color: $color-grey-light-1;
+    }
+  }
+  &__link {
+    display: flex;
+    width: 3rem;
+    height: 3rem;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    text-decoration: none;
+    color: currentColor;
+  }
+}

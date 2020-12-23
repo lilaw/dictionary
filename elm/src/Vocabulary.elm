@@ -1,4 +1,4 @@
-module Vocabulary exposing (Vocabulary, Word, Sense, Explan(..), decoder, relatedWord, entries, headword, favorite, unfavorite, toFavored)
+module Vocabulary exposing (Vocabulary(..), Word, Sense, Explan(..), decoder, relatedWord, entries, headword, toFavored, toLastWord)
 
 import Json.Decode as Decode exposing (Decoder, Value, list, string, at, field, index, oneOf, value, maybe, map2)
 import Json.Decode.Pipeline exposing (custom, hardcoded, required, optional)
@@ -6,13 +6,15 @@ import Http
 import Api exposing (url, userReplace)
 import Vocabulary.Slug as Slug exposing (Slug)
 import Vocabulary.Id as Id exposing (Id)
-import Favorites exposing (Favorites, Favored)
+import Favorites exposing (Favored)
+import Recent exposing (LastWord)
 import Viewer exposing (Viewer)
 
 
 
 type Vocabulary
   = Vocabulary Internals
+  | Suggestion (List String)
 
 type alias Internals =
     { slug : Slug
@@ -52,12 +54,20 @@ type Explan
   
 -- Info
 entries : Vocabulary -> List Word
-entries (Vocabulary inter) =
-  inter.entries
+entries voc =
+  case voc of
+      Vocabulary inter->
+        inter.entries
+      _ ->
+        []
 
 relatedWord : Vocabulary -> List Word
-relatedWord (Vocabulary inter) =
-  inter.related
+relatedWord voc =
+  case voc of
+      Vocabulary inter->
+        inter.related
+      _ ->
+        []
 
   
 headword : Word -> String
@@ -70,14 +80,20 @@ headword w =
 
 
 decoder : Slug -> Decoder Vocabulary
-decoder slug = 
-  Decode.succeed Internals
-    |> hardcoded slug
-    |> custom (list wordDecode)
-    |> custom (list wordDecode)
-    |> Decode.map filterOutRelate
-    |> Decode.map Vocabulary
-
+decoder slug =
+  let
+      vocDecoder = 
+        Decode.succeed Internals
+          |> hardcoded slug
+          |> custom (list wordDecode)
+          |> custom (list wordDecode)
+          |> Decode.map filterOutRelate
+          |> Decode.map Vocabulary
+      sugDecoder =
+        Decode.map Suggestion <|
+          list string
+  in
+    oneOf [ vocDecoder, sugDecoder ]
 
 wordDecode : Decoder Word
 wordDecode = 
@@ -172,21 +188,8 @@ toFavored : Word -> Favored
 toFavored wor =
   Favored wor.slug wor.id wor.headword wor.shortDefine
 
-favorite : Viewer -> Favored -> Cmd msg
-favorite viewer fav =
-  let
-    oldFavor = Viewer.favorites viewer
-  in
-    Favorites.add fav oldFavor
-      |> Viewer.updateFavor viewer
-      |> Viewer.store
-  
 
-unfavorite : Viewer -> Favored -> Cmd msg
-unfavorite viewer fav =
-  let
-    oldFavor = Viewer.favorites viewer
-  in
-    Favorites.remove fav oldFavor
-      |> Viewer.updateFavor viewer
-      |> Viewer.store
+-- rcent 
+toLastWord : Word -> LastWord
+toLastWord wor =
+  LastWord wor.slug wor.id wor.headword 

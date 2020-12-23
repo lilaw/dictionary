@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        
+        <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:300,400,400i|Nunito:300,300i" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="shortcut icon" type="image/png" href="img/favicon.png">
+        
+        <title>dictionary</title>
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <img src="img/logo.png" alt="header logo" class="header__logo">
+                <form action="" class="search">
+                    <input type="text" class="search__input search__input-error" required>
+                    <button class="search__btn">
+                        <svg class="search__icon">
+                            <use href="img/sprite.svg#icon-magnifying-glass"></use>
+                        </svg>
+                    </button>
+                </form>
+                <nav class="nav">
+                    <ul class="nav__list">
+                        <li class="nav__item nav__item--active">
+                            <a href="#" class="nav__link">
+                                <svg class="nav__icon">
+                                    <use href="img/sprite.svg#icon-home"></use>
+                                </svg>
+                                <span>home</span>
+                            </a>
+                        </li>
+                        <li class="nav__item">
+                            <a href="#" class="nav__link">
+                                <svg class="nav__icon">
+                                    <use href="img/sprite.svg#icon-key"></use>
+                                </svg>
+                                <span>favorites</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </header>
+            
+            <div class="content">
+                <div class="favorites">
+                    <h3 class="favorites__title heading-2 ">favorites</h3>
+                    <figure class="favored">
+                        <button class="favored__remove">
+                            <svg class="favored__remove-icon">
+                                <use href="img/sprite.svg#icon-close"></use>
+                            </svg>
+                        </button>
+                        <a href="" class="favored__link">
+                            <figcaption class="favored__header heading-3">
+                                <span class="favored__headword">speaks</span>
+                            </figcaption>
+                            <ul class="favored__defines">
+                                <li class="favored__mean">someone who speaks a particular language</li>
+                                <li class="favored__mean">someone who talks about something to a group of people</li>
+                            </ul>
+                        </a>
+                    </figure>
+
+                    <nav class="pagination">
+                        <ul class="pagination__list">
+                            <li class="pagination__item pagination__item-active"><a href="" class="pagination__link">1</a></li>
+                            <li class="pagination__item"><a href="" class="pagination__link">2</a></li>
+                            <li class="pagination__item"><a href="" class="pagination__link">3</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

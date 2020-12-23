@@ -2,13 +2,11 @@ port module Api exposing (url, decodeErrors, addServerError, userReplace, audioU
 
 import Http exposing (Error(..))
 import Json.Encode as Encode exposing (Value)
-
 import Json.Decode as Decode exposing (Decoder, Value)
--- import Json.Decode.Pipeline as Pipeline exposing (optional)
 import Url.Builder exposing (string)
 import Regex
 import Favorites exposing (Favorites)
-
+import Recent exposing (Recent)
 
 
 -- URL
@@ -83,14 +81,15 @@ userReplace userRegex replacer string =
 
 
 -- PERSISTENCE
-storeViewerWith : Favorites -> Cmd msg
-storeViewerWith favorites =
+storeViewerWith : Favorites -> Recent -> Cmd msg
+storeViewerWith favorites recent =
     let
         json =
             Encode.object
                 [ ( "user"
                   , Encode.object
                         [ ( "favorites", Favorites.encode favorites )
+                        , ( "recent", Recent.encode recent)
                         ]
                   )
                 ]
