@@ -54,7 +54,7 @@ body {
 .container {
     display: grid;
     // we use min-content to have the height of it's content
-    grid-template-rows: 10rem auto 40vw repeat(3, min-content);
+    grid-template-rows: 10rem auto;
     // adding two column to each side of eight columns center eight columns between sidebar and right viewport border
     // full-bleed section goes all the way from the left side to the right side, like header gallery. these sections need these 1fr columns on the left and right side to break out of ur predefined eight-column grid 
     grid-template-columns: [leftspace-start] 4rem [leftspace-end full-start] minmax(6rem, 1fr) [center-start] repeat(8, [col-start] minmax(min-content, 14rem) [col-end] ) [center-end] minmax(6rem, 1fr) [full-end rightspace-start] 4rem [rightspace-end]; //1140px/8=142.5
