@@ -14,12 +14,17 @@ import Viewer exposing (Viewer)
 
 type Vocabulary
   = Vocabulary Internals
-  | Suggestion (List String)
+  | Suggestion (List Suggest)
 
 type alias Internals =
     { slug : Slug
     , entries : List Word  -- for this word 
     , related : List Word   -- for other word
+    }
+
+type alias Suggest =
+    { slug : Slug
+    , headword : String
     }
 
 type alias Word =
@@ -75,7 +80,6 @@ headword w =
   w.headword
 
 
-
 -- decoder
 
 
@@ -91,9 +95,10 @@ decoder slug =
           |> Decode.map Vocabulary
       sugDecoder =
         Decode.map Suggestion <|
-          list string
+          list suggestDecoder
+
   in
-    oneOf [ vocDecoder, sugDecoder ]
+    oneOf [ sugDecoder, vocDecoder ]
 
 wordDecode : Decoder Word
 wordDecode = 
@@ -129,9 +134,14 @@ stringWithoutSuffix =
 
 filterOutRelate : Internals -> Internals
 filterOutRelate info  =
+  let
+     isEq a =  
+      String.toLower a.headword == String.toLower (Slug.toString a.slug)
+  in
+
   {info 
-    | entries = List.filter (\w -> w.headword == (Slug.toString info.slug)) info.entries
-    , related = List.filter (\w -> w.headword /= (Slug.toString info.slug)) info.related
+    | entries = List.filter isEq info.entries
+    , related = List.filter (not << isEq) info.related
   }
 
 
@@ -181,6 +191,13 @@ explanHelper idea =
         _ -> 
             -- Decode.fail ("I can't decode" ++ idea)
             Decode.succeed Other
+
+
+suggestDecoder : Decoder Suggest
+suggestDecoder = 
+    Decode.map2 Suggest
+      (Slug.decoder string)
+      string
 
 
 -- FAVORITE

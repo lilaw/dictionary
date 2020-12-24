@@ -49,10 +49,6 @@ view model =
                             ]
                         else
                             [button [class "btn-ranges__btn showcase__btn-clear", onClick ClickedEditing] [text "Edit"]]
-                            
-                    
-                            
-                    
                     ]
                 , viewRecent (Viewer.recent <| Session.viewer model.session) model.isEditingRecent
                 ]
@@ -60,9 +56,7 @@ view model =
                 [ header [class "showcase__header"]
                     [ h3 [class "showcase__title heading-3"] [text "favorites"]
                     , div [class "btn-ranges"]
-                        [
-                        a [Route.href Route.Favorites, class "btn-ranges__btn showcase__link"] [text "more"] 
-                        ]
+                        [ a [Route.href Route.Favorites, class "btn-ranges__btn showcase__link"] [text "more"] ]
                     ]
                 , viewFavorites (Viewer.favorites <| Session.viewer model.session)
                 ]

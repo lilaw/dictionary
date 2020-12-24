@@ -70,6 +70,26 @@ view model =
 
         ( enries, related ) =
             sideNav model.vocabulary model.selectedEntry
+        vocabulary = 
+            case model.vocabulary of
+                Loaded voc ->
+                    case voc of
+                        Vocabulary _ ->
+                            vocabularyView model.selectedEntry voc (Session.viewer model.session)
+                        Suggestion sug ->
+                            suggestionView sug                            
+                    
+                Loading ->
+                    [ div [class "vocabulary__loading"] 
+                        [ p [class "vocabulary__loading-text"] [ text "" ] ]
+                    ]
+
+                LoadingSlowly ->
+                    [ div [class "vocabulary__loading"] 
+                        [ p [class "vocabulary__loading-text"] [ text "loadingSlowly" ] ]
+                    ]
+                Failed ->
+                    [ text "faild" ]
     in
     { title = title
     , content =
@@ -80,8 +100,7 @@ view model =
                     , related
                     ]
                 ]
-            , div [ class "vocabulary" ] <|
-                vocabularyView model.selectedEntry model.vocabulary (Session.viewer model.session)
+            , div [ class "vocabulary" ] vocabulary
             ]
     }
 
@@ -137,106 +156,115 @@ sideNav vocabulary selectedEntry =
             )
 
         Loading ->
-            ( text "loading", text "" )
+            ( div [class "entries entries__loading"] []
+            , text "" 
+            )
 
         LoadingSlowly ->
-            ( text "loading", text "" )
+            ( div [class "entries entries__loading"] []
+            , text "" 
+            )
 
         Failed ->
             ( text "faild", text "" )
 
+suggestionView :  List { a | headword : String, slug : Slug } -> List (Html msg)
+suggestionView sug =
+    let
+        toLink suggest = 
+            li [class "vocabulary__suggestion-item"] 
+                [ a [Route.href (Route.Vocabulary suggest.slug Nothing), class "vocabulary__link"] [text suggest.headword] ]
+            
+    in
+        [section [class "vocabulary__suggestion"]
+            [ h4 [class "vocabulary__not-found heading-3"] [text "Not Found"]
+            , p [class "vocabulary__tip"] [text "The word you have entered is not in the dictionary. try your search again"]
+            , ol [class "vocabulary__suggestion-list"] <|
+                List.map toLink sug
+            ]
+        ]
 
-vocabularyView : Maybe Id -> Status Vocabulary -> Viewer -> List (Html Msg)
-vocabularyView selectedEntry vocabulary viewer =
-    case vocabulary of
-        Loaded voc ->
-            let
-                words =
-                    case selectedEntry of
-                        Just id ->
-                            List.filter (\w -> Id.isEq w.id id) (Vocabulary.entries voc)
+vocabularyView : Maybe Id -> Vocabulary -> Viewer -> List (Html Msg)
+vocabularyView selectedEntry voc viewer =
+    let
+        words =
+            case selectedEntry of
+                Just id ->
+                    List.filter (\w -> Id.isEq w.id id) (Vocabulary.entries voc)
 
-                        Nothing ->
-                            []
+                Nothing ->
+                    []
 
-                wordView word =
-                    div [ class "vocabulary__container" ] <|
-                        List.concat
-                            [ [ headerView word ]
-                            , [ shortDefineView word.shortDefine ]
-                            , fullDefineView word.define
-                            , [ crossReffencesView word.crossReffences ]
-                            ]
+        wordView word =
+            div [ class "vocabulary__container" ] <|
+                List.concat
+                    [ [ headerView word ]
+                    , [ shortDefineView word.shortDefine ]
+                    , fullDefineView word.define
+                    , [ crossReffencesView word.crossReffences ]
+                    ]
 
-                headerView word =
-                    header [ class "vocabulary__header  mb-sm" ]
-                        [ h2 [ class "vocabulary__headword heading-1" ] [ text word.headword ]
-                        , case word.functionalLabel of
-                            Just label ->
-                                span [ class "vocabulary__functional-label" ] [ text label ]
+        headerView word =
+            header [ class "vocabulary__header  mb-sm" ]
+                [ h2 [ class "vocabulary__headword heading-1" ] [ text word.headword ]
+                , case word.functionalLabel of
+                    Just label ->
+                        span [ class "vocabulary__functional-label" ] [ text label ]
 
-                            Nothing ->
-                                text ""
-                        , div [ class "vocabulary__pronunciation" ]
-                            [ case word.ipa of
-                                Just ipa ->
-                                    span [ class "vocabulary__ipa" ] [ text ipa ]
-
-                                Nothing ->
-                                    text ""
-                            , case word.audio of
-                                Just filename ->
-                                    button [ class "vocabulary__sound", onClick ClickedAudio ]
-                                        [ svg [ SvgAttributes.class "vocabulary__sound-icon" ] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-audio" ] [] ]
-                                        , audio [ class "vocabulary__sound-audio", id "audio", src (audioUrl filename) ] []
-                                        ]
-
-                                Nothing ->
-                                    text ""
-                            ]
-                        , favoriteButton viewer word
-                        ]
-
-                shortDefineView shortDefine =
-                    div [ class "vocabulary__brief" ]
-                        [ ul [ class "vocabulary__brief-list" ] <|
-                            List.map
-                                (\str -> li [ class "vocabulary__brief-item" ] [ text str ])
-                                shortDefine
-                        ]
-
-                fullDefineView define =
-                    case define of
-                        Just listOfDefine ->
-                            List.map
-                                (\listOfSenses ->
-                                    div [ class "vocabulary__definition" ] <|
-                                        List.map senseView listOfSenses
-                                )
-                                listOfDefine
-
-                        Nothing ->
-                            [ text "" ]
-
-                crossReffencesView crossRef =
-                    case crossRef of
-                        Just cr ->
-                            div [ class "vocabulary__crossRef" ]
-                                [ p [] (textHtml cr) ]
+                    Nothing ->
+                        text ""
+                , div [ class "vocabulary__pronunciation" ]
+                    [ case word.ipa of
+                        Just ipa ->
+                            span [ class "vocabulary__ipa" ] [ text ipa ]
 
                         Nothing ->
                             text ""
-            in
-            List.map wordView words
+                    , case word.audio of
+                        Just filename ->
+                            button [ class "vocabulary__sound", onClick ClickedAudio ]
+                                [ svg [ SvgAttributes.class "vocabulary__sound-icon" ] [ use [ SvgAttributes.xlinkHref "/img/sprite.svg#icon-audio" ] [] ]
+                                , audio [ class "vocabulary__sound-audio", id "audio", src (audioUrl filename) ] []
+                                ]
 
-        Loading ->
-            [ text "loading" ]
+                        Nothing ->
+                            text ""
+                    ]
+                , favoriteButton viewer word
+                ]
 
-        LoadingSlowly ->
-            [ text "loadingSlowly" ]
+        shortDefineView shortDefine =
+            div [ class "vocabulary__brief" ]
+                [ ul [ class "vocabulary__brief-list" ] <|
+                    List.map
+                        (\str -> li [ class "vocabulary__brief-item" ] [ text str ])
+                        shortDefine
+                ]
 
-        Failed ->
-            [ text "faild" ]
+        fullDefineView define =
+            case define of
+                Just listOfDefine ->
+                    List.map
+                        (\listOfSenses ->
+                            div [ class "vocabulary__definition" ] <|
+                                List.map senseView listOfSenses
+                        )
+                        listOfDefine
+
+                Nothing ->
+                    [ text "" ]
+
+        crossReffencesView crossRef =
+            case crossRef of
+                Just cr ->
+                    div [ class "vocabulary__crossRef" ]
+                        [ p [] (textHtml cr) ]
+
+                Nothing ->
+                    text ""
+    in
+    List.map wordView words
+
 
 
 senseView : Sense -> Html msg
@@ -345,6 +373,10 @@ update msg model =
         ClickedUnfavorite viewer word ->
             ( model, Viewer.unfavorite viewer (Vocabulary.toFavored word) )
         CompetedVocabularyLoad (Ok vocabulary) ->
+                            let
+                                e =
+                                    Debug.log "voc" vocabulary
+                            in
             ( { model 
               | vocabulary = Loaded vocabulary
               , selectedEntry = 
@@ -361,10 +393,6 @@ update msg model =
                     in
                     case List.head info.entries of
                         Just word ->
-                            let
-                                e =
-                                    Debug.log "voc" word
-                            in
                             Vocabulary.toLastWord word
                                 |> Recent.add (Viewer.recent viewer)
                                 |> Viewer.updateRecent viewer

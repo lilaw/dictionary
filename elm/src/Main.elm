@@ -96,7 +96,6 @@ update msg model =
             let
                 (newModel, newMsg) = 
                     SearchBox.update subMsg model.searchBox
-                a = Debug.log "input" newModel
             in
                 ( { searchBox = newModel
                  , page = anyPage
