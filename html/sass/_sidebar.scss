@@ -50,4 +50,8 @@
       background-color: $color-grey-dark-2;
     }
   } 
+
+  &__loading {
+    height: 70vh; 
+  }
 }

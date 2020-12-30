@@ -14,18 +14,18 @@
     <body>
         <div class="container">
             <header class="header">
-                <img src="img/logo.png" alt="header logo" class="header__logo">
+                <h1 class="header__logo"><img src="img/logo.png" alt="nexter home" class="header__logo-img"></h1>
                 <form action="" class="search">
-                    <input type="text" class="search__input search__input-error" required>
+                    <input type="text" class="search__input search__input-error" aria-label="Search" required>
                     <button class="search__btn">
                         <svg class="search__icon">
                             <use href="img/sprite.svg#icon-magnifying-glass"></use>
                         </svg>
                     </button>
                 </form>
-                <nav class="nav">
-                    <ul class="nav__list">
-                        <li class="nav__item nav__item--active">
+                <nav class="nav" aria-label="main navigation">
+                    <ul class="nav__list" role="menubar">
+                        <li class="nav__item nav__item--active" role="menuitem">
                             <a href="#" class="nav__link">
                                 <svg class="nav__icon">
                                     <use href="img/sprite.svg#icon-home"></use>
@@ -34,7 +34,7 @@
                             </a>
                         </li>
                         <li class="nav__item">
-                            <a href="#" class="nav__link">
+                            <a href="#" class="nav__link" role="menuitem">
                                 <svg class="nav__icon">
                                     <use href="img/sprite.svg#icon-key"></use>
                                 </svg>
@@ -44,44 +44,44 @@
                     </ul>
                 </nav>
             </header>
-                <div class="content">
-                    <section class="showcase mb-md">
-                        <header class="showcase__header">
-                            <h3 class="showcase__title heading-3">recent</h3>
-                            <div class="btn-ranges">
-                                <button class="btn-ranges__btn showcase__btn--clear">
-                                    clear all
-                                </button>
-                                <button class="btn-ranges__btn showcase__btn--edit">
-                                    done
-                                </button>
-                            </div>
-                        </header>
-                        <ul class="showcase__list showcase__list-edit">
-                            <li class="showcase__item">
-                                <a href="" class="showcase__link">go</a>
-                                <button class="showcase__remove">
-                                    <svg class="showcase__remove-icon">
-                                        <use href="img/sprite.svg#icon-close"></use>
-                                    </svg>
-                                </button>
-                            </li>
-                        </ul>
-                    </section>
-                    <section class="showcase">
-                        <header class="showcase__header">
-                            <h3 class="showcase__title heading-3">favorites</h3>
-                            <div class="btn-ranges">
-                                <a href="" class="btn-ranges__btn showcase__link">more</a>
-                            </div>
-                        </header>
-                        <ul class="showcase__list">
-                            <li class="showcase__item">
-                                <a href="" class="showcase__link">go</a>
-                            </li>
-                        </ul>
-                    </section>
-                </div>
+            <main class="content">
+                <section class="showcase mb-md">
+                    <header class="showcase__header">
+                        <h2 class="showcase__title heading-3">recent</h2>
+                        <div class="btn-ranges">
+                            <button class="btn-ranges__btn showcase__btn--clear">
+                                clear all
+                            </button>
+                            <button class="btn-ranges__btn showcase__btn--edit">
+                                done
+                            </button>
+                        </div>
+                    </header>
+                    <ul class="showcase__list showcase__list-edit">
+                        <li class="showcase__item">
+                            <a href="" class="showcase__link">go</a>
+                            <button class="showcase__remove">
+                                <svg class="showcase__remove-icon">
+                                    <use href="img/sprite.svg#icon-close"></use>
+                                </svg>
+                            </button>
+                        </li>
+                    </ul>
+                </section>
+                <section class="showcase">
+                    <header class="showcase__header">
+                        <h2 class="showcase__title heading-3">favorites</h2>
+                        <div class="btn-ranges">
+                            <a href="" class="btn-ranges__btn showcase__link">more</a>
+                        </div>
+                    </header>
+                    <ul class="showcase__list">
+                        <li class="showcase__item">
+                            <a href="" class="showcase__link">go</a>
+                        </li>
+                    </ul>
+                </section>
+            </main>
         </div>
     </body>
 </html>

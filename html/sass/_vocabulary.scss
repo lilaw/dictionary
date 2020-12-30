@@ -162,3 +162,29 @@
     font-size: 1.7rem;
   }
 }
+
+
+
+// suggestion
+.vocabulary {
+  &__suggestion {
+    padding: 3rem;
+  }
+
+  &__suggestion-list {
+    margin-left: 4rem;
+  }
+  &__link {
+    color: currentColor;
+  }
+}
+
+//loading 
+.vocabulary {
+  &__loading {
+    height: 70vh;
+  }
+  &__loading-text {
+    text-align: center;
+  }
+}

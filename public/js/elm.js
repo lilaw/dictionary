@@ -5629,6 +5629,11 @@ var $author$project$Vocabulary$Vocabulary = function (a) {
 	return {$: 'Vocabulary', a: a};
 };
 var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom = $elm$json$Json$Decode$map2($elm$core$Basics$apR);
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -5640,30 +5645,26 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$core$Basics$not = _Basics_not;
+var $elm$core$String$toLower = _String_toLower;
 var $author$project$Vocabulary$Slug$toString = function (_v0) {
 	var str = _v0.a;
 	return str;
 };
 var $author$project$Vocabulary$filterOutRelate = function (info) {
+	var isEq = function (a) {
+		return _Utils_eq(
+			$elm$core$String$toLower(a.headword),
+			$elm$core$String$toLower(
+				$author$project$Vocabulary$Slug$toString(a.slug)));
+	};
 	return _Utils_update(
 		info,
 		{
-			entries: A2(
-				$elm$core$List$filter,
-				function (w) {
-					return _Utils_eq(
-						w.headword,
-						$author$project$Vocabulary$Slug$toString(info.slug));
-				},
-				info.entries),
+			entries: A2($elm$core$List$filter, isEq, info.entries),
 			related: A2(
 				$elm$core$List$filter,
-				function (w) {
-					return !_Utils_eq(
-						w.headword,
-						$author$project$Vocabulary$Slug$toString(info.slug));
-				},
+				A2($elm$core$Basics$composeL, $elm$core$Basics$not, isEq),
 				info.related)
 		});
 };
@@ -5675,7 +5676,22 @@ var $elm$core$Basics$composeR = F3(
 var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$hardcoded = A2($elm$core$Basics$composeR, $elm$json$Json$Decode$succeed, $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom);
 var $elm$json$Json$Decode$list = _Json_decodeList;
 var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $author$project$Vocabulary$Suggest = F2(
+	function (slug, headword) {
+		return {headword: headword, slug: slug};
+	});
+var $author$project$Vocabulary$Slug$Slug = function (a) {
+	return {$: 'Slug', a: a};
+};
+var $author$project$Vocabulary$Slug$decoder = function (modifiedString) {
+	return A2($elm$json$Json$Decode$map, $author$project$Vocabulary$Slug$Slug, modifiedString);
+};
 var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Vocabulary$suggestDecoder = A3(
+	$elm$json$Json$Decode$map2,
+	$author$project$Vocabulary$Suggest,
+	$author$project$Vocabulary$Slug$decoder($elm$json$Json$Decode$string),
+	$elm$json$Json$Decode$string);
 var $author$project$Vocabulary$Word = F9(
 	function (id, headword, slug, define, functionalLabel, ipa, audio, shortDefine, crossReffences) {
 		return {audio: audio, crossReffences: crossReffences, define: define, functionalLabel: functionalLabel, headword: headword, id: id, ipa: ipa, shortDefine: shortDefine, slug: slug};
@@ -5715,12 +5731,6 @@ var $author$project$Vocabulary$Id$Id = function (a) {
 	return {$: 'Id', a: a};
 };
 var $author$project$Vocabulary$Id$decoder = A2($elm$json$Json$Decode$map, $author$project$Vocabulary$Id$Id, $elm$json$Json$Decode$string);
-var $author$project$Vocabulary$Slug$Slug = function (a) {
-	return {$: 'Slug', a: a};
-};
-var $author$project$Vocabulary$Slug$decoder = function (modifiedString) {
-	return A2($elm$json$Json$Decode$map, $author$project$Vocabulary$Slug$Slug, modifiedString);
-};
 var $elm$json$Json$Decode$maybe = function (decoder) {
 	return $elm$json$Json$Decode$oneOf(
 		_List_fromArray(
@@ -5993,10 +6003,10 @@ var $author$project$Vocabulary$decoder = function (slug) {
 	var sugDecoder = A2(
 		$elm$json$Json$Decode$map,
 		$author$project$Vocabulary$Suggestion,
-		$elm$json$Json$Decode$list($elm$json$Json$Decode$string));
+		$elm$json$Json$Decode$list($author$project$Vocabulary$suggestDecoder));
 	return $elm$json$Json$Decode$oneOf(
 		_List_fromArray(
-			[vocDecoder, sugDecoder]));
+			[sugDecoder, vocDecoder]));
 };
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
 var $elm$http$Http$BadStatus_ = F2(
@@ -7691,6 +7701,7 @@ var $author$project$Viewer$favorites = function (_v0) {
 	var info = _v0.a;
 	return info.favorites;
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Favorites$remove = F2(
 	function (favored, _v0) {
 		var listFav = _v0.a;
@@ -7864,7 +7875,6 @@ var $author$project$Vocabulary$Id$isEq = F2(
 			$author$project$Vocabulary$Id$toString(id1),
 			$author$project$Vocabulary$Id$toString(id2));
 	});
-var $elm$core$Basics$not = _Basics_not;
 var $author$project$Recent$remove = F2(
 	function (_v0, id) {
 		var info = _v0.a;
@@ -8074,11 +8084,6 @@ var $author$project$Recent$add = F2(
 				24,
 				A2($elm$core$List$cons, word, rec)));
 	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
 var $author$project$Api$decodeErrors = function (error) {
 	var message = function () {
 		switch (error.$) {
@@ -8176,6 +8181,7 @@ var $author$project$Page$Vocabulary$update = F2(
 			case 'CompetedVocabularyLoad':
 				if (msg.a.$ === 'Ok') {
 					var vocabulary = msg.a.a;
+					var e = A2($elm$core$Debug$log, 'voc', vocabulary);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -8205,7 +8211,6 @@ var $author$project$Page$Vocabulary$update = F2(
 								var _v3 = $elm$core$List$head(info.entries);
 								if (_v3.$ === 'Just') {
 									var word = _v3.a;
-									var e = A2($elm$core$Debug$log, 'voc', word);
 									return $author$project$Viewer$store(
 										A2(
 											$author$project$Viewer$updateRecent,
@@ -8272,7 +8277,6 @@ var $author$project$Main$update = F2(
 					var _v2 = A2($author$project$Header$SearchBox$update, subMsg, model.searchBox);
 					var newModel = _v2.a;
 					var newMsg = _v2.b;
-					var a = A2($elm$core$Debug$log, 'input', newModel);
 					return _Utils_Tuple2(
 						{page: anyPage, searchBox: newModel},
 						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSearchBoxMsg, newMsg));
@@ -9276,11 +9280,23 @@ var $author$project$Page$Vocabulary$sideNav = F2(
 							])));
 			case 'Loading':
 				return _Utils_Tuple2(
-					$elm$html$Html$text('loading'),
+					A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('entries entries__loading')
+							]),
+						_List_Nil),
 					$elm$html$Html$text(''));
 			case 'LoadingSlowly':
 				return _Utils_Tuple2(
-					$elm$html$Html$text('loading'),
+					A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('entries entries__loading')
+							]),
+						_List_Nil),
 					$elm$html$Html$text(''));
 			default:
 				return _Utils_Tuple2(
@@ -9288,6 +9304,72 @@ var $author$project$Page$Vocabulary$sideNav = F2(
 					$elm$html$Html$text(''));
 		}
 	});
+var $elm$html$Html$h4 = _VirtualDom_node('h4');
+var $elm$html$Html$ol = _VirtualDom_node('ol');
+var $author$project$Page$Vocabulary$suggestionView = function (sug) {
+	var toLink = function (suggest) {
+		return A2(
+			$elm$html$Html$li,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('vocabulary__suggestion-item')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$author$project$Route$href(
+							A2($author$project$Route$Vocabulary, suggest.slug, $elm$core$Maybe$Nothing)),
+							$elm$html$Html$Attributes$class('vocabulary__link')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(suggest.headword)
+						]))
+				]));
+	};
+	return _List_fromArray(
+		[
+			A2(
+			$elm$html$Html$section,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('vocabulary__suggestion')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$h4,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('vocabulary__not-found heading-3')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Not Found')
+						])),
+					A2(
+					$elm$html$Html$p,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('vocabulary__tip')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('The word you have entered is not in the dictionary. try your search again')
+						])),
+					A2(
+					$elm$html$Html$ol,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('vocabulary__suggestion-list')
+						]),
+					A2($elm$core$List$map, toLink, sug))
+				]))
+		]);
+};
 var $author$project$Page$Vocabulary$ClickedAudio = {$: 'ClickedAudio'};
 var $elm$html$Html$audio = _VirtualDom_node('audio');
 var $elm$regex$Regex$contains = _Regex_contains;
@@ -9672,7 +9754,6 @@ var $elm$parser$Parser$Advanced$succeed = function (a) {
 		});
 };
 var $elm$parser$Parser$succeed = $elm$parser$Parser$Advanced$succeed;
-var $elm$core$String$toLower = _String_toLower;
 var $hecrj$html_parser$Html$Parser$closingTag = function (name) {
 	var chompName = A2(
 		$elm$parser$Parser$andThen,
@@ -13122,243 +13203,293 @@ var $elm$html$Html$Attributes$src = function (url) {
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
 var $author$project$Page$Vocabulary$vocabularyView = F3(
-	function (selectedEntry, vocabulary, viewer) {
-		switch (vocabulary.$) {
-			case 'Loaded':
-				var voc = vocabulary.a;
-				var words = function () {
-					if (selectedEntry.$ === 'Just') {
-						var id = selectedEntry.a;
-						return A2(
-							$elm$core$List$filter,
-							function (w) {
-								return A2($author$project$Vocabulary$Id$isEq, w.id, id);
+	function (selectedEntry, voc, viewer) {
+		var words = function () {
+			if (selectedEntry.$ === 'Just') {
+				var id = selectedEntry.a;
+				return A2(
+					$elm$core$List$filter,
+					function (w) {
+						return A2($author$project$Vocabulary$Id$isEq, w.id, id);
+					},
+					$author$project$Vocabulary$entries(voc));
+			} else {
+				return _List_Nil;
+			}
+		}();
+		var shortDefineView = function (shortDefine) {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('vocabulary__brief')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$ul,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('vocabulary__brief-list')
+							]),
+						A2(
+							$elm$core$List$map,
+							function (str) {
+								return A2(
+									$elm$html$Html$li,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('vocabulary__brief-item')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(str)
+										]));
 							},
-							$author$project$Vocabulary$entries(voc));
-					} else {
-						return _List_Nil;
-					}
-				}();
-				var shortDefineView = function (shortDefine) {
-					return A2(
+							shortDefine))
+					]));
+		};
+		var headerView = function (word) {
+			return A2(
+				$elm$html$Html$header,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('vocabulary__header  mb-sm')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$h2,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('vocabulary__headword heading-1')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(word.headword)
+							])),
+						function () {
+						var _v2 = word.functionalLabel;
+						if (_v2.$ === 'Just') {
+							var label = _v2.a;
+							return A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('vocabulary__functional-label')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(label)
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}(),
+						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('vocabulary__brief')
+								$elm$html$Html$Attributes$class('vocabulary__pronunciation')
 							]),
 						_List_fromArray(
 							[
-								A2(
-								$elm$html$Html$ul,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('vocabulary__brief-list')
-									]),
-								A2(
-									$elm$core$List$map,
-									function (str) {
-										return A2(
-											$elm$html$Html$li,
-											_List_fromArray(
-												[
-													$elm$html$Html$Attributes$class('vocabulary__brief-item')
-												]),
-											_List_fromArray(
-												[
-													$elm$html$Html$text(str)
-												]));
-									},
-									shortDefine))
-							]));
-				};
-				var headerView = function (word) {
-					return A2(
-						$elm$html$Html$header,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('vocabulary__header  mb-sm')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$h2,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('vocabulary__headword heading-1')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(word.headword)
-									])),
 								function () {
-								var _v3 = word.functionalLabel;
+								var _v3 = word.ipa;
 								if (_v3.$ === 'Just') {
-									var label = _v3.a;
+									var ipa = _v3.a;
 									return A2(
 										$elm$html$Html$span,
 										_List_fromArray(
 											[
-												$elm$html$Html$Attributes$class('vocabulary__functional-label')
+												$elm$html$Html$Attributes$class('vocabulary__ipa')
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text(label)
+												$elm$html$Html$text(ipa)
 											]));
 								} else {
 									return $elm$html$Html$text('');
 								}
 							}(),
-								A2(
-								$elm$html$Html$div,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('vocabulary__pronunciation')
-									]),
-								_List_fromArray(
-									[
-										function () {
-										var _v4 = word.ipa;
-										if (_v4.$ === 'Just') {
-											var ipa = _v4.a;
-											return A2(
-												$elm$html$Html$span,
+								function () {
+								var _v4 = word.audio;
+								if (_v4.$ === 'Just') {
+									var filename = _v4.a;
+									return A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('vocabulary__sound'),
+												$elm$html$Html$Events$onClick($author$project$Page$Vocabulary$ClickedAudio)
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$svg$Svg$svg,
 												_List_fromArray(
 													[
-														$elm$html$Html$Attributes$class('vocabulary__ipa')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(ipa)
-													]));
-										} else {
-											return $elm$html$Html$text('');
-										}
-									}(),
-										function () {
-										var _v5 = word.audio;
-										if (_v5.$ === 'Just') {
-											var filename = _v5.a;
-											return A2(
-												$elm$html$Html$button,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$class('vocabulary__sound'),
-														$elm$html$Html$Events$onClick($author$project$Page$Vocabulary$ClickedAudio)
+														$elm$svg$Svg$Attributes$class('vocabulary__sound-icon')
 													]),
 												_List_fromArray(
 													[
 														A2(
-														$elm$svg$Svg$svg,
+														$elm$svg$Svg$use,
 														_List_fromArray(
 															[
-																$elm$svg$Svg$Attributes$class('vocabulary__sound-icon')
-															]),
-														_List_fromArray(
-															[
-																A2(
-																$elm$svg$Svg$use,
-																_List_fromArray(
-																	[
-																		$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-audio')
-																	]),
-																_List_Nil)
-															])),
-														A2(
-														$elm$html$Html$audio,
-														_List_fromArray(
-															[
-																$elm$html$Html$Attributes$class('vocabulary__sound-audio'),
-																$elm$html$Html$Attributes$id('audio'),
-																$elm$html$Html$Attributes$src(
-																$author$project$Api$audioUrl(filename))
+																$elm$svg$Svg$Attributes$xlinkHref('/img/sprite.svg#icon-audio')
 															]),
 														_List_Nil)
-													]));
-										} else {
-											return $elm$html$Html$text('');
-										}
-									}()
-									])),
-								A2($author$project$Page$Vocabulary$favoriteButton, viewer, word)
-							]));
-				};
-				var fullDefineView = function (define) {
-					if (define.$ === 'Just') {
-						var listOfDefine = define.a;
-						return A2(
-							$elm$core$List$map,
-							function (listOfSenses) {
-								return A2(
-									$elm$html$Html$div,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('vocabulary__definition')
-										]),
-									A2($elm$core$List$map, $author$project$Page$Vocabulary$senseView, listOfSenses));
-							},
-							listOfDefine);
-					} else {
-						return _List_fromArray(
-							[
-								$elm$html$Html$text('')
-							]);
-					}
-				};
-				var crossReffencesView = function (crossRef) {
-					if (crossRef.$ === 'Just') {
-						var cr = crossRef.a;
+													])),
+												A2(
+												$elm$html$Html$audio,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('vocabulary__sound-audio'),
+														$elm$html$Html$Attributes$id('audio'),
+														$elm$html$Html$Attributes$src(
+														$author$project$Api$audioUrl(filename))
+													]),
+												_List_Nil)
+											]));
+								} else {
+									return $elm$html$Html$text('');
+								}
+							}()
+							])),
+						A2($author$project$Page$Vocabulary$favoriteButton, viewer, word)
+					]));
+		};
+		var fullDefineView = function (define) {
+			if (define.$ === 'Just') {
+				var listOfDefine = define.a;
+				return A2(
+					$elm$core$List$map,
+					function (listOfSenses) {
 						return A2(
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
-									$elm$html$Html$Attributes$class('vocabulary__crossRef')
+									$elm$html$Html$Attributes$class('vocabulary__definition')
 								]),
+							A2($elm$core$List$map, $author$project$Page$Vocabulary$senseView, listOfSenses));
+					},
+					listOfDefine);
+			} else {
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('')
+					]);
+			}
+		};
+		var crossReffencesView = function (crossRef) {
+			if (crossRef.$ === 'Just') {
+				var cr = crossRef.a;
+				return A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('vocabulary__crossRef')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$p,
+							_List_Nil,
+							$author$project$Page$Vocabulary$textHtml(cr))
+						]));
+			} else {
+				return $elm$html$Html$text('');
+			}
+		};
+		var wordView = function (word) {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('vocabulary__container')
+					]),
+				$elm$core$List$concat(
+					_List_fromArray(
+						[
 							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$p,
-									_List_Nil,
-									$author$project$Page$Vocabulary$textHtml(cr))
-								]));
-					} else {
-						return $elm$html$Html$text('');
-					}
-				};
-				var wordView = function (word) {
-					return A2(
-						$elm$html$Html$div,
-						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('vocabulary__container')
+								headerView(word)
 							]),
-						$elm$core$List$concat(
 							_List_fromArray(
-								[
-									_List_fromArray(
-									[
-										headerView(word)
-									]),
-									_List_fromArray(
-									[
-										shortDefineView(word.shortDefine)
-									]),
-									fullDefineView(word.define),
-									_List_fromArray(
-									[
-										crossReffencesView(word.crossReffences)
-									])
-								])));
-				};
-				return A2($elm$core$List$map, wordView, words);
+							[
+								shortDefineView(word.shortDefine)
+							]),
+							fullDefineView(word.define),
+							_List_fromArray(
+							[
+								crossReffencesView(word.crossReffences)
+							])
+						])));
+		};
+		return A2($elm$core$List$map, wordView, words);
+	});
+var $author$project$Page$Vocabulary$view = function (model) {
+	var vocabulary = function () {
+		var _v2 = model.vocabulary;
+		switch (_v2.$) {
+			case 'Loaded':
+				var voc = _v2.a;
+				if (voc.$ === 'Vocabulary') {
+					return A3(
+						$author$project$Page$Vocabulary$vocabularyView,
+						model.selectedEntry,
+						voc,
+						$author$project$Session$viewer(model.session));
+				} else {
+					var sug = voc.a;
+					return $author$project$Page$Vocabulary$suggestionView(sug);
+				}
 			case 'Loading':
 				return _List_fromArray(
 					[
-						$elm$html$Html$text('loading')
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('vocabulary__loading')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$p,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('vocabulary__loading-text')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('')
+									]))
+							]))
 					]);
 			case 'LoadingSlowly':
 				return _List_fromArray(
 					[
-						$elm$html$Html$text('loadingSlowly')
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('vocabulary__loading')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$p,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('vocabulary__loading-text')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('loadingSlowly')
+									]))
+							]))
 					]);
 			default:
 				return _List_fromArray(
@@ -13366,8 +13497,7 @@ var $author$project$Page$Vocabulary$vocabularyView = F3(
 						$elm$html$Html$text('faild')
 					]);
 		}
-	});
-var $author$project$Page$Vocabulary$view = function (model) {
+	}();
 	var title = function () {
 		var _v1 = model.vocabulary;
 		switch (_v1.$) {
@@ -13417,11 +13547,7 @@ var $author$project$Page$Vocabulary$view = function (model) {
 						[
 							$elm$html$Html$Attributes$class('vocabulary')
 						]),
-					A3(
-						$author$project$Page$Vocabulary$vocabularyView,
-						model.selectedEntry,
-						model.vocabulary,
-						$author$project$Session$viewer(model.session)))
+					vocabulary)
 				])),
 		title: title
 	};

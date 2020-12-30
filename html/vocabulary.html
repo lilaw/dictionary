@@ -44,27 +44,36 @@
                     </ul>
                 </nav>
             </header>
-                <div class="content">
+            <div class="content">
                     <div class="side-bar">
                         <div class="side-nav">
-                            <div class="entries entries-thisword mb-md">
-                                <h3 class="entries__title heading-3">Entries</h3>
+                            <nav class="entries entries-thisword mb-md" aria-labelledby="entriesNav">
+                                <h2 class="entries__title heading-3" id="entriesNav">Entries</h2>
                                 <ul class="entries__list">
-                                    <li class="entries__item"><button class="entries__btn entries__btn--selected">go (verb)</button></li>
+                                    <li class="entries__item"><button class="entries__btn entries__btn--selected" aria-current="page">go (verb)</button></li>
                                     <li class="entries__item"><button class="entries__btn">go (noun)</button></li>
                                 </ul>
-                            </div>
-                            <div class="entries entries-otherword">
-                                <h3 class="entries__title heading-3">Related words</h3>
+                            </nav>
+                            <nav class="entries entries-otherword" aria-labelledby="relatedWordNav">
+                                <h2 class="entries__title heading-3" id="relatedWordNav">Related words</h2>
                                     <ul class="entries__list">
                                         <li class="entries__item"><a href="#" class="entries__link">go-ahead (noun)</a></li>
                                         <li class="entries__item"><a href="#" class="entries__link">go-around (noun)</a></li>
                                     </ul>
-                            </div>
+                            </nav>
                         </div>
                     </div>
                     <div class="vocabulary">
                         <div class="vocabulary__container">
+                            <section class="vocabulary__suggestion">
+                                <h2 class="vocabulary__not-found heading-3">Not Found</h2>
+                                <p class="vocabulary__tip">The word you have entered is not in the dictionary. try your search again</p>
+                                <ol class="vocabulary__suggestion-list">
+                                    <li class="vocabulary__suggestion-item">
+                                        <a href="" class="vocabulary__link">wet</a>
+                                    </li>
+                                </ol>
+                            </section>
                             <header class="vocabulary__header  mb-sm">
                                 <h2 class="vocabulary__headword heading-1">Go</h2>
                                 <span class="vocabulary__functional-label">verb</span>

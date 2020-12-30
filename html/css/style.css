@@ -69,6 +69,8 @@ body {
     text-decoration: none; }
     .entries__link:hover {
       background-color: #261c12; }
+  .entries__loading {
+    height: 70vh; }
 
 .header {
   display: flex;
@@ -359,6 +361,21 @@ body {
     margin: 1rem;
     padding-left: 1em;
     font-size: 1.7rem; }
+
+.vocabulary__suggestion {
+  padding: 3rem; }
+
+.vocabulary__suggestion-list {
+  margin-left: 4rem; }
+
+.vocabulary__link {
+  color: currentColor; }
+
+.vocabulary__loading {
+  height: 70vh; }
+
+.vocabulary__loading-text {
+  text-align: center; }
 
 .heading-1, .heading-2, .heading-3, .heading-4 {
   font-family: "Josefin Sans", sans-serif;
