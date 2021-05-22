@@ -136,7 +136,7 @@ filterOutRelate : Internals -> Internals
 filterOutRelate info  =
   let
      isEq a =  
-      String.toLower a.headword == String.toLower (Slug.toString a.slug)
+      String.toLower a.headword == String.toLower (Slug.toString info.slug)
   in
 
   {info 

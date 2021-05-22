@@ -5645,6 +5645,7 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
+var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Basics$not = _Basics_not;
 var $elm$core$String$toLower = _String_toLower;
 var $author$project$Vocabulary$Slug$toString = function (_v0) {
@@ -5656,8 +5657,9 @@ var $author$project$Vocabulary$filterOutRelate = function (info) {
 		return _Utils_eq(
 			$elm$core$String$toLower(a.headword),
 			$elm$core$String$toLower(
-				$author$project$Vocabulary$Slug$toString(a.slug)));
+				$author$project$Vocabulary$Slug$toString(info.slug)));
 	};
+	var b = A2($elm$core$Debug$log, 'allentries', info);
 	return _Utils_update(
 		info,
 		{
@@ -6896,7 +6898,6 @@ var $author$project$Page$Vocabulary$init = F3(
 						$author$project$Loading$slowThreshold)
 					])));
 	});
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$Main$toSession = function (page) {
 	switch (page.$) {
 		case 'Redirect':
